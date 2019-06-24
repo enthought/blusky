@@ -1,4 +1,4 @@
 # sandia-blusky
 Sandia BluSky
 
-Library for wavelet scattering transform using Keras/Tensorflow.
+Library for the wavelet scattering transform using Keras/Tensorflow.

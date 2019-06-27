@@ -1,0 +1,16 @@
+build: false
+image: Visual Studio 2017
+platform: x64
+
+cache:
+  - '%HOME%\.cache\edm'
+
+install:
+  - ps: .\ci\scripts\edmfetch.ps1
+  - set PATH=C:\Enthought\edm;%PATH%
+  - edm --config ci\data\edm.yaml --api-token %HATCHER_TOKEN% install --version 3 -y -e bootstrap click setuptools pyyaml
+  - edm run -e bootstrap -- python -m ci build-devenv --eds Enthought
+
+test_script:
+  - edm run -e bootstrap -- python -m ci flake8
+  - edm run -e bootstrap -- python -m ci test

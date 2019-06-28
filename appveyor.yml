@@ -2,9 +2,11 @@ environment:
   matrix:
     - APPVEYOR_JOB_NAME: "python36-x64"
       PYTHON: "C:\\Python36-x64"
-
+init:
+  - ECHO %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%
+  
 install:
-  - "SET PYTHON=%PYTHON%\\Python\"
+  - set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - python --version
   - python -m pip install -U pip
   - python -m easy_install -U setuptools

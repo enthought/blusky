@@ -14,5 +14,3 @@ build: none
 
 test_script:
   - python -m unittest discover
-  
-	

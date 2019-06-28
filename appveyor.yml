@@ -1,16 +1,18 @@
-build: false
-image: Visual Studio 2017
-platform: x64
-
-cache:
-  - '%HOME%\.cache\edm'
+environment:
+  matrix:
+    - APPVEYOR_JOB_NAME: "python36-x64"
+      PYTHON: "C:\\Python36-x64"
 
 install:
-  - ps: .\ci\scripts\edmfetch.ps1
-  - set PATH=C:\Enthought\edm;%PATH%
-  - edm --config ci\data\edm.yaml --api-token %HATCHER_TOKEN% install --version 3 -y -e bootstrap click setuptools pyyaml
-  - edm run -e bootstrap -- python -m ci build-devenv --eds Enthought
+  - "SET PYTHON=\"C:\\Program Files\\Python\""
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - python -m pip install -U pip
+  - python -m easy_install -U setuptools
+  - pip install -e .[test]
+  
+build: none
 
 test_script:
-  - edm run -e bootstrap -- python -m ci flake8
-  - edm run -e bootstrap -- python -m ci test
+  - python -m unittest discover
+  
+	

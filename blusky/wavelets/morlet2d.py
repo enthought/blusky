@@ -1,4 +1,7 @@
-from traits.api import Float, HasStrictTraits, Int, Property, Tuple
+
+import numpy as np
+
+from traits.api import Bool, Float, HasStrictTraits, Int, Property, Tuple
 
 class Morlet2D(HasStrictTraits):
     """
@@ -119,8 +122,8 @@ class Morlet2D(HasStrictTraits):
     def _taper(self):
         """ Compute hanning window to taper image.
         """
-        taper = np.outer(np.hanning(self.shape[0]), 
-                         np.hanning(self.shape[1]))
+        taper = np.outer(np.kaiser(self.shape[0],3), 
+                         np.kaiser(self.shape[1],3))
         return taper
     
     def kernel(self, theta):
@@ -154,9 +157,10 @@ class Morlet2D(HasStrictTraits):
         X = X - np.ceil(M/2.) 
         Y = Y - np.ceil(N/2.)
 
-        Rth = np.array([[np.cos(theta), np.sin(theta)],
-                             [-np.sin(theta), np.cos(theta)]])
-
+        # rotation matrix
+        Rth = np.array([[np.cos(_theta), np.sin(_theta)],
+                        [-np.sin(_theta), np.cos(_theta)]])
+        
         # envelope in the major/minor directions
         vec = np.array( [[1/self._sigma[0]**2., 0], 
                          [0, 1./self._sigma[1]**2.]] ) 

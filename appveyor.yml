@@ -1,3 +1,5 @@
+image: Visual Studio 2015
+
 environment:
   matrix:
     - APPVEYOR_JOB_NAME: "python36-x64"

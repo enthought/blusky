@@ -22,15 +22,15 @@ class TestAlgorithms(unittest.TestCase):
             path.dirname(datasets.__file__), "40Hz_30Hzbw_slant05_45deg.npy"
         )
         test_wav45 = np.load(test_wav45)
-        
-        
+
+
         wav = Morlet2D(sample_rate=0.004,
                        center_frequency=45.,
                        bandwidth=(30.,15.),
                        crop=3.5, taper=False)
-        
+
         _wav0 = wav.kernel(0.0)
         _wav45 = wav.kernel(45.0)
-        
+
         self.assertTrue(np.max(np.abs(_wav0 - test_wav0)) < 1E-7)
         self.assertTrue(np.max(np.abs(_wav45 - test_wav45)) < 1E-7)

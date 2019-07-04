@@ -114,10 +114,10 @@ class Morlet2D(HasStrictTraits):
         any orientation.
         """        
         # tiles are square
-        _n = self.crop * max(self._sigma) 
+        _n = np.int_(self.crop * max(self._sigma))
         # nicer if odd
-        _n = (2*_n)//2 + 1        
-        return (int(_n),int(_n))
+        _n += 1 - (_n%2)
+        return (_n, _n)
 
     def _taper(self):
         """ Compute hanning window to taper image.

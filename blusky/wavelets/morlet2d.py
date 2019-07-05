@@ -1,8 +1,11 @@
 import numpy as np
 
-from traits.api import Bool, Float, HasStrictTraits, Int, Property, Tuple
+from traits.api import (Bool, Float, HasStrictTraits, Int, Property,
+                        provides, Tuple)
 
+from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
+@provides(IWavelet2D)
 class Morlet2D(HasStrictTraits):
     """
     Construct a 2-D Morlet wavelet using parameters of center frequency,
@@ -126,6 +129,8 @@ class Morlet2D(HasStrictTraits):
 
     def kernel(self, theta):
         """
+        Output the wavelet in an complex valued array.
+
         Derivative of the work :morlet_2d_noDC.m
 
         from https://github.com/scatnet/scatnet

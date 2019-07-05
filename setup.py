@@ -28,30 +28,22 @@ here = path.abspath(path.dirname(__file__))
 
 
 setup(
-    name='sandia-blusky',
-    version='0.0.1',  # Required
-    description='Scattering Transform Library',
-
-
+    name="sandia-blusky",
+    version="0.0.1",  # Required
+    description="Scattering Transform Library",
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Scientists',
-        'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Scientists",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
     ],
-
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-
-    python_requires='>=3.6',
-
+    packages=find_packages(exclude=["contrib", "docs", "tests"]),
+    python_requires=">=3.6",
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
     # installed, so they must be valid existing projects.
-    install_requires=['numpy',
-                      'traits',
-                     ],  # Optional
-
+    install_requires=["numpy", "traits"],  # Optional
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
     # syntax, for example:
@@ -61,27 +53,20 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'dev': ['check-manifest'],
-        'test': ['coverage'],
+        "dev": ["check-manifest"],
+        "test": ["coverage"],
     },
-
     # If there are data files included in your packages that need to be
     # installed, specify them here.
     #
     # If using Python 2.6 or earlier, then these have to be included in
     # MANIFEST.in as well.
     package_data={},
-
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target
     # platform.
-    entry_points={
-        'console_scripts': [
-            'sample=sample:main',
-        ],
-    },
-
+    entry_points={"console_scripts": ["sample=sample:main"]},
     # List additional URLs that are relevant to your project as a dict.
     project_urls={},
 )

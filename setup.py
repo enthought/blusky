@@ -50,9 +50,7 @@ setup(
     # installed, so they must be valid existing projects.
     install_requires=['numpy',
                       'traits',
-                      'tensorflow',
-                      'keras'
-                     ],  
+                     ],  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"

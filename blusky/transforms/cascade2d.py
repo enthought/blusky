@@ -28,11 +28,11 @@ from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
 class Cascade2D(HasStrictTraits):
     """
-    The idea here is to implement a cascade of convolvolution 
-    and modulus opertations. 
-    Suppose I had a sequence of wavelets, \psi1, \psi2, ... 
+    The idea here is to implement a cascade of convolvolution
+    and modulus opertations.
+    Suppose I had a sequence of wavelets, \psi1, \psi2, ...
 
-    |x * \psi1| 
+    |x * \psi1|
     |x * \psi2| -> output
         .
         .
@@ -48,7 +48,7 @@ class Cascade2D(HasStrictTraits):
                 .
                   |
                   |
-                  ---> .. etc ..    
+                  ---> .. etc ..
     """
 
     # provide a list of wavelets to define the cascade, the order is important,
@@ -102,14 +102,14 @@ class Cascade2D(HasStrictTraits):
 
     def _init_weights(self, shape, dtype=None, wavelet2d=None, real_part=True):
         """
-        Create an initializer for DepthwiseConv2D layers. We need these 
-        layers instead of Conv2D because we don't want it to stack across 
+        Create an initializer for DepthwiseConv2D layers. We need these
+        layers instead of Conv2D because we don't want it to stack across
         channels.
-        
+
         Parameters
-        ----------       
+        ----------
         wavelet2d - IWavelet2D
-            An object to create a wavelet.      
+            An object to create a wavelet.
         """
         if dtype is None:
             dtype = np.float32
@@ -203,7 +203,7 @@ class Cascade2D(HasStrictTraits):
 
     def _convolve_and_pool(self, inp, wavelets):
         """
-        This computes |x * \psi| and applies a pooling to the result. 
+        This computes |x * \psi| and applies a pooling to the result.
         Which, for efficiency, (optionally) downsamples the output of the convolution.
         """
         stride = 2 ** self.stride_log2

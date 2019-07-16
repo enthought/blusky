@@ -164,7 +164,7 @@ class Cascade2D(HasStrictTraits):
             kernel_size=wavelet.shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
-            padding="same",
+            padding="valid",
             strides=stride,
             trainable=False,
             depthwise_initializer=lambda args: self._init_weights(
@@ -177,7 +177,7 @@ class Cascade2D(HasStrictTraits):
             kernel_size=wavelet.shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
-            padding="same",
+            padding="valid",
             strides=stride,
             trainable=False,
             depthwise_initializer=lambda args: self._init_weights(

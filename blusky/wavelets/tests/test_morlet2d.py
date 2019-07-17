@@ -12,7 +12,7 @@ class TestAlgorithms(unittest.TestCase):
         from blusky.wavelets.morlet2d import Morlet2D
         import blusky.datasets as datasets
 
-        # generated from morlet_2d_noDC.m
+        # generated from morlet_2d_pyramid.m
         test_wav0 = path.join(
             path.dirname(datasets.__file__), "40Hz_30Hzbw_slant05_0deg.npy"
         )

@@ -166,8 +166,8 @@ class Morlet2D(HasStrictTraits):
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 
         # the gaussian envelope is measured in samples
-        X = X - np.ceil(M / 2.0)
-        Y = Y - np.ceil(N / 2.0)
+        X = X - M//2
+        Y = Y - M//2
 
         # rotation matrix
         Rth = np.array(

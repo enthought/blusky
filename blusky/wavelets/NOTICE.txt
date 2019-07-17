@@ -1,6 +1,6 @@
    The kernel method of the Gabor2D and Morlet2D object is a derivative work
    of the
-   gabor_2d.m and morlet_2d_noDC.m codes, used under the following license:
+   gabor_2d.m and morlet_2d_pyramid.m codes, used under the following license:
 
    Copyright [2013] [Joakim Andén, Laurent Sifre, Stephane Mallat, Michel Kapoko, Vincent Lostanlen, Edouard Oyallon]
 

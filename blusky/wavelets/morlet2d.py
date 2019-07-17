@@ -93,6 +93,7 @@ class Morlet2D(HasStrictTraits):
            maybe useful for reducing edge effects in subsequent convolutions.
 
         usage:
+
         wav = Morlet2D(sample_rate=0.004,
                        center_frequency=60.,
                        bandwidth=(30.,15.))
@@ -111,9 +112,6 @@ class Morlet2D(HasStrictTraits):
         gaussian with standard deviation: sigma' = 1/sigma
         bandwidth, measured at FWHM ~ 2.355 / sigma
         """
-        if any([self.center_frequency - f <= 0 for f in self.bandwidth]):
-            raise RuntimeError("Frequency range should be >= 0")
-
         def to_ang(f):
             return 2 * np.pi * f * self.sample_rate
 
@@ -142,7 +140,7 @@ class Morlet2D(HasStrictTraits):
         """
         Output the wavelet in an complex valued array.
 
-        Derivative of the work :morlet_2d_noDC.m
+        Derivative of the work: morlet_2d_pyramid.m
 
         from https://github.com/scatnet/scatnet
 
@@ -216,3 +214,6 @@ class Morlet2D(HasStrictTraits):
             normalized_wavelet *= self._taper()
 
         return normalized_wavelet
+
+
+

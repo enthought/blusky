@@ -10,32 +10,32 @@ class TestAlgorithms(unittest.TestCase):
         https://github.com/kymatio/kymatio
         """
         import blusky.datasets as datasets
-        from blusky.wavelets.wavelet_factories_2d import vanilla_morlet_2d
+        from blusky.wavelets.wavelet_factories_2d import vanilla_gabor_2d
 
         ang = np.pi / 3.55
 
-        wavj0 = vanilla_morlet_2d(0.001, j=0, crop=30.7 * 2).kernel(
+        wavj0 = vanilla_gabor_2d(0.001, j=0, xi=2.35619, crop=30.7 * 4).kernel(
             np.rad2deg(ang)
         )
-        wavj1 = vanilla_morlet_2d(0.001, j=1, crop=30.7).kernel(
+        wavj1 = vanilla_gabor_2d(0.001, j=1, xi=2.35619, crop=30.7 * 2).kernel(
             np.rad2deg(ang)
         )
-        wavj2 = vanilla_morlet_2d(0.001, j=2, crop=30.7 / 2).kernel(
+        wavj2 = vanilla_gabor_2d(0.001, j=2, xi=2.35619, crop=30.7).kernel(
             np.rad2deg(ang)
         )
 
         test_wav0 = path.join(
-            path.dirname(datasets.__file__), "vanilla_morlet_0j.npy"
+            path.dirname(datasets.__file__), "vanilla_gabor_0j.npy"
         )
         test_wav0 = np.load(test_wav0)
 
         test_wav1 = path.join(
-            path.dirname(datasets.__file__), "vanilla_morlet_1j.npy"
+            path.dirname(datasets.__file__), "vanilla_gabor_1j.npy"
         )
         test_wav1 = np.load(test_wav1)
 
         test_wav2 = path.join(
-            path.dirname(datasets.__file__), "vanilla_morlet_2j.npy"
+            path.dirname(datasets.__file__), "vanilla_gabor_2j.npy"
         )
         test_wav2 = np.load(test_wav2)
 

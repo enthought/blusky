@@ -214,6 +214,3 @@ class Morlet2D(HasStrictTraits):
             normalized_wavelet *= self._taper()
 
         return normalized_wavelet
-
-
-

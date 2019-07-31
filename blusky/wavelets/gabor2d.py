@@ -12,8 +12,9 @@ from traits.api import (
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
+
 @provides(IWavelet2D)
-class Gabor2D(HasStrictTraits):    
+class Gabor2D(HasStrictTraits):
     """
     Construct a 2-D Gabor wavelet using parameters of center frequency,
     bandwidth and sample rate. Defining a difference in bandwidth will
@@ -102,7 +103,7 @@ class Gabor2D(HasStrictTraits):
         self.sample_rate = sample_rate
 
         super().__init__(**traits)
-    
+
     def _get__sigma(self):
         """
         sigma parameterizes the gaussian envelope of the wavelet.
@@ -110,6 +111,7 @@ class Gabor2D(HasStrictTraits):
         gaussian with standard deviation: sigma' = 1/sigma
         bandwidth, measured at FWHM ~ 2.355 / sigma
         """
+
         def to_ang(f):
             return 2 * np.pi * f * self.sample_rate
 
@@ -153,7 +155,7 @@ class Gabor2D(HasStrictTraits):
         ------
         wavelet - Array
            A 2d array containing the wavelet
-        """        
+        """
 
         # convert to radians
         _theta = np.deg2rad(theta)
@@ -164,11 +166,11 @@ class Gabor2D(HasStrictTraits):
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 
         # the gaussian envelope is measured in samples
-        #X = X - np.ceil(M / 2.0)
-        #Y = Y - np.ceil(N / 2.0)
-        X = X - M//2
-        Y = Y - M//2
-        
+        # X = X - np.ceil(M / 2.0)
+        # Y = Y - np.ceil(N / 2.0)
+        X = X - M // 2
+        Y = Y - M // 2
+
         # rotation matrix
         Rth = np.array(
             [
@@ -187,7 +189,7 @@ class Gabor2D(HasStrictTraits):
 
         # element by element
         S = X * (A[0, 0] * X + A[0, 1] * Y) + Y * (A[1, 0] * X + A[1, 1] * Y)
-       
+
         # Gaussian envelope in spatial domain
         gaussian_envelope = np.exp(-S / 2)
 
@@ -197,7 +199,7 @@ class Gabor2D(HasStrictTraits):
         gabc = gaussian_envelope * np.exp(
             1j * (X * xi * np.cos(_theta) + Y * xi * np.sin(_theta))
         )
-        
+
         normalized_wavelet = (
             1 / (2 * np.pi * self._sigma[0] * self._sigma[1]) * gabc
         )

@@ -85,6 +85,13 @@ class Cascade2D(HasStrictTraits):
     # orientation, define that here in degrees.
     angles = Tuple
 
+    #: Direction to Keras Conv2d on how to do padding at each convolution,
+    #  "same" pads with zeros, "valid" doesn't. This doesn't replace the
+    #  need to pad tiles during preprocessing, however, "same" will maintain
+    #  tile size through each layer.
+    #  "valid" is faster.
+    _padding = Enum(["same", "valid"])
+
     #: private, labels endpoints to attach things to
     _endpoint_counter = Int(0)
 
@@ -154,9 +161,7 @@ class Cascade2D(HasStrictTraits):
         sqrt = Lambda(
             lambda x: keras_backend.sqrt(x),
             trainable=False,
-            name="endpoint-{}/{}".format(
-                self._endpoint_counter, self._current_order
-            ),
+            name="endpoint-{}/{}".format(self._endpoint_counter, self._current_order),
         )
         self._endpoint_counter += 1
 
@@ -164,7 +169,7 @@ class Cascade2D(HasStrictTraits):
             kernel_size=wavelet.shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
-            padding="valid",
+            padding=self._padding,
             strides=stride,
             trainable=False,
             depthwise_initializer=lambda args: self._init_weights(
@@ -177,7 +182,7 @@ class Cascade2D(HasStrictTraits):
             kernel_size=wavelet.shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
-            padding="valid",
+            padding=self._padding,
             strides=stride,
             trainable=False,
             depthwise_initializer=lambda args: self._init_weights(
@@ -191,13 +196,13 @@ class Cascade2D(HasStrictTraits):
 
     def _max_pooling(self, conv_abs_layers, stride):
         pooling = MaxPooling2D(
-            pool_size=(self.pooling_size, self.pooling_size), padding="valid"
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 
     def _avg_pooling(self, inp, stride):
         pooling = AveragePooling2D(
-            pool_size=(self.pooling_size, self.pooling_size), padding="valid"
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 

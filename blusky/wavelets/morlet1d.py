@@ -2,13 +2,13 @@ import numpy as np
 
 from traits.api import Bool, Float, HasStrictTraits, Int, Property, provides, Tuple
 
-from blusky.wavelets.i_wavelet_2d import IWavelet2D
+from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
 
-@provides(IWavelet2D)
-class Gabor2D(HasStrictTraits):
+@provides(IWavelet1D)
+class Morlet1D(HasStrictTraits):
     """
-    Construct a 2-D Gabor wavelet using parameters of center frequency,
+    Construct a 1-D Morlet wavelet using parameters of center frequency,
     bandwidth and sample rate. Defining a difference in bandwidth will
     result in an eccentricity of the wavelet.
 
@@ -23,6 +23,7 @@ class Gabor2D(HasStrictTraits):
     taper - Bool
        If true, applies a hanning window to the image on output. This maybe
        useful for reducing edge effects in subsequent convolutions.
+
     """
 
     #: If the wavelet with eccentricity, the orientation of
@@ -84,9 +85,9 @@ class Gabor2D(HasStrictTraits):
 
         usage:
 
-        wav = Gabor2D(sample_rate=0.004,
-                      center_frequency=60.,
-                      bandwidth=(30.,15.))
+        wav = Morlet2D(sample_rate=0.004,
+                       center_frequency=60.,
+                       bandwidth=(30.,15.))
         """
 
         self.center_frequency = center_frequency
@@ -129,7 +130,7 @@ class Gabor2D(HasStrictTraits):
         """
         Output the wavelet in an complex valued array.
 
-        Derivative of the work :gabor_2d.m
+        Derivative of the work: morlet_2d_pyramid.m
 
         from https://github.com/scatnet/scatnet
 
@@ -155,8 +156,6 @@ class Gabor2D(HasStrictTraits):
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 
         # the gaussian envelope is measured in samples
-        # X = X - np.ceil(M / 2.0)
-        # Y = Y - np.ceil(N / 2.0)
         X = X - M // 2
         Y = Y - M // 2
 
@@ -182,9 +181,17 @@ class Gabor2D(HasStrictTraits):
         # convert to units of cycles per sample
         xi = 2 * np.pi * self.center_frequency * self.sample_rate
 
-        gabc = gaussian_envelope * np.exp(
+        # (Proof by taking fourier transform), the complex phase
+        # shifts the spectrum to be distributed about the center
+        # frequency. The variance is the inverse of sigma^2.
+        oscilating_part = gaussian_envelope * np.exp(
             1j * (X * xi * np.cos(_theta) + Y * xi * np.sin(_theta))
         )
+
+        K = np.sum(oscilating_part) / np.sum(gaussian_envelope)
+
+        #
+        gabc = oscilating_part - K * gaussian_envelope
 
         normalized_wavelet = 1 / (2 * np.pi * self._sigma[0] * self._sigma[1]) * gabc
 

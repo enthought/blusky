@@ -102,7 +102,7 @@ def vanilla_gabor_2d(
     """
     This is a lexicon that translates to our definition of the wavelet in
     physical units to the definitions of https://github.com/scatnet/scatnet
-    that works with dimensionless units. Returns a Morlet2D wavelet
+    that works with dimensionless units. Returns a Gabor2D wavelet
     constructed according the dimensionless definitions.
 
     Find bandwidth to get required (sigma):
@@ -157,8 +157,8 @@ def vanilla_gabor_2d(
 
     Returns
     -------
-    wav - Morlet2D
-        2D Morlet wavelet constructed according the dimensionless definitions.
+    wav - Gabor2D
+        2D Gabor wavelet constructed according the dimensionless definitions.
     """
 
     if slant == 0:
@@ -176,7 +176,7 @@ def vanilla_gabor_2d(
 
     bandwidth = (_bandwidth, _bandwidth * slant)
 
-    # Equivalent Morlet wavelet
+    # Equivalent Gabor wavelet
     wav = Gabor2D(
         sample_rate=sample_rate,
         center_frequency=center_frequency,

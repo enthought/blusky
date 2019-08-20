@@ -161,9 +161,7 @@ class Cascade2D(HasStrictTraits):
         sqrt = Lambda(
             lambda x: keras_backend.sqrt(x),
             trainable=False,
-            name="endpoint-{}/{}".format(
-                self._endpoint_counter, self._current_order
-            ),
+            name="endpoint-{}/{}".format(self._endpoint_counter, self._current_order),
         )
         self._endpoint_counter += 1
 
@@ -198,15 +196,13 @@ class Cascade2D(HasStrictTraits):
 
     def _max_pooling(self, conv_abs_layers, stride):
         pooling = MaxPooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 
-    def _avg_pooling(self, conv_abs_layers, stride):
+    def _avg_pooling(self, inp, stride):
         pooling = AveragePooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 

@@ -3,7 +3,6 @@ from itertools import chain
 import keras.backend as keras_backend
 from keras.layers import (
     MaxPooling2D,
-    AveragePooling2D,
     DepthwiseConv2D,
     AveragePooling2D,
     Lambda,
@@ -11,17 +10,7 @@ from keras.layers import (
 )
 import numpy as np
 
-from traits.api import (
-    Bool,
-    Enum,
-    Float,
-    HasStrictTraits,
-    Int,
-    List,
-    Property,
-    provides,
-    Tuple,
-)
+from traits.api import Enum, HasStrictTraits, Int, List, Tuple
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
@@ -30,20 +19,18 @@ class Cascade2D(HasStrictTraits):
     """
     The idea here is to implement a cascade of convolvolution
     and modulus opertations.
-    Suppose I had a sequence of wavelets, \psi1, \psi2, ...
+    Suppose I had a sequence of wavelets, psi1, psi2, ...
 
-    |x * \psi1|
-    |x * \psi2| -> output
+    |x * psi1|
+    |x * psi2| -> output
         .
         .
         .
-     |
-     |
-     ---> ||x * \psi1| * \psi2|
-          ||x * \psi1| * \psi3|
+     ---> ||x * psi1| * psi2|
+          ||x * psi1| * psi3|
                 .               -> output
                 .
-          ||x * \psi2| * \psi3|
+          ||x * psi2| * psi3|
                 .
                 .
                   |
@@ -102,7 +89,8 @@ class Cascade2D(HasStrictTraits):
         self.pooling_type = pooling_type.lower()
         if stride_log2 < 0:
             raise RuntimeError(
-                "stride_log2 needs to be > 0, we don't support upsampling right now."
+                "stride_log2 needs to be > 0, we don't support \
+                upsampling right now."
             )
 
         super().__init__(**traits)
@@ -152,12 +140,13 @@ class Cascade2D(HasStrictTraits):
 
     def _convolve_and_abs(self, wavelet, inp, stride=1):
         """
-        Implement the operations for |x*\psi|
+        Implement the operations for |x*psi|
         """
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
 
-        # The output gets a special name, because it's here we attach things to.
+        # The output gets a special name, because it's here we attach
+        # things to.
         sqrt = Lambda(
             lambda x: keras_backend.sqrt(x),
             trainable=False,
@@ -212,8 +201,9 @@ class Cascade2D(HasStrictTraits):
 
     def _convolve_and_pool(self, inp, wavelets):
         """
-        This computes |x * \psi| and applies a pooling to the result.
-        Which, for efficiency, (optionally) downsamples the output of the convolution.
+        This computes |x * psi| and applies a pooling to the result.
+        Which, for efficiency, (optionally) downsamples the output of the
+        convolution.
         """
         stride = 2 ** self.stride_log2
 
@@ -245,7 +235,7 @@ class Cascade2D(HasStrictTraits):
             last_layer = list(
                 chain(
                     *[
-                        self._convolve_and_pool(i, self.wavelets[order - 1 :])
+                        self._convolve_and_pool(i, self.wavelets[order - 1:])
                         for i in last_layer
                     ]
                 )

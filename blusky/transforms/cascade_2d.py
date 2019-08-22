@@ -1,11 +1,7 @@
 from itertools import chain
 
 import keras.backend as keras_backend
-from keras.layers import (
-    DepthwiseConv2D,
-    Lambda,
-    Add,
-)
+from keras.layers import DepthwiseConv2D, Lambda, Add
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple

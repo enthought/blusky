@@ -1,18 +1,13 @@
 from itertools import chain
 
 import keras.backend as keras_backend
-from keras.layers import (
-    MaxPooling2D,
-    DepthwiseConv2D,
-    AveragePooling2D,
-    Lambda,
-    Add,
-)
+from keras.layers import MaxPooling2D, DepthwiseConv2D, AveragePooling2D, Lambda, Add
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, List, Tuple
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
+from blusky.transforms.cascade_tree import CascadeTree
 
 
 class Cascade2D(HasStrictTraits):
@@ -71,6 +66,8 @@ class Cascade2D(HasStrictTraits):
     #: In 2D we will apply the transform over a set of wavelets are different
     # orientation, define that here in degrees.
     angles = Tuple
+
+    cascade_tree = Instance(CascadeTree)
 
     #: Direction to Keras Conv2d on how to do padding at each convolution,
     #  "same" pads with zeros, "valid" doesn't. This doesn't replace the
@@ -138,21 +135,19 @@ class Cascade2D(HasStrictTraits):
 
         return keras_backend.variable(value=weights, dtype=dtype)
 
-    def _convolve_and_abs(self, wavelet, inp, stride=1):
+    def _convolve_and_abs(self, wavelet, inp, stride=1, name=''):
         """
         Implement the operations for |x*psi|
         """
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
-
+        
         # The output gets a special name, because it's here we attach
         # things to.
         sqrt = Lambda(
             lambda x: keras_backend.sqrt(x),
             trainable=False,
-            name="endpoint-{}/{}".format(
-                self._endpoint_counter, self._current_order
-            ),
+            name=name, #"endpoint-{}/{}".format(self._endpoint_counter, self._current_order),
         )
         self._endpoint_counter += 1
 
@@ -187,15 +182,13 @@ class Cascade2D(HasStrictTraits):
 
     def _max_pooling(self, conv_abs_layers, stride):
         pooling = MaxPooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 
     def _avg_pooling(self, conv_abs_layers, stride):
         pooling = AveragePooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
+            pool_size=(self.pooling_size, self.pooling_size), padding=self._padding
         )
         return [pooling(i) for i in conv_abs_layers]
 
@@ -221,26 +214,27 @@ class Cascade2D(HasStrictTraits):
         # return the conv abs layers optionally pooled.
         return conv_abs_layers
 
+    def _convolve(self, inp, psi, name):
+        """
+        This computes |x * psi|.
+        Which, for efficiency, (optionally) downsamples the output of the
+        convolution.
+        """
+        # we're not going to downsample on this first pass
+        stride = 1  # 2 ** self.stride_log2
+
+        # apply the conv_abs layers
+        conv = self._convolve_and_abs(psi, inp, stride=stride, name=name)
+
+        return conv
+
     def transform(self, inp):
         """
         Apply abs/conv operations to arbitrary order.
         Doesn't apply the DC term, just the subsequent layers.
         """
-        transform_order = []
-        last_layer = [inp]
-        # orders 1, 2, ...
-        for order in range(1, self.depth + 1):
-            self._current_order = order
-            # wavelets need to be ordered by bandwidth so this makes sense.
-            last_layer = list(
-                chain(
-                    *[
-                        self._convolve_and_pool(i, self.wavelets[order - 1:])
-                        for i in last_layer
-                    ]
-                )
-            )
 
-            transform_order.append(last_layer)
-
-        return list(chain(*transform_order))
+        self.cascade_tree = CascadeTree(inp, order=self.depth)
+        self.cascade_tree.generate(self.wavelets, self._convolve)
+        self.cascade_tree.display()
+        return self.cascade_tree.get_convolutions()

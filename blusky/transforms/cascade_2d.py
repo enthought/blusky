@@ -1,7 +1,13 @@
 from itertools import chain
 
 import keras.backend as keras_backend
-from keras.layers import MaxPooling2D, DepthwiseConv2D, AveragePooling2D, Lambda, Add
+from keras.layers import (
+    MaxPooling2D,
+    DepthwiseConv2D,
+    AveragePooling2D,
+    Lambda,
+    Add,
+)
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, List, Tuple
@@ -149,7 +155,9 @@ class Cascade2D(HasStrictTraits):
 
         return keras_backend.variable(value=weights, dtype=dtype)
 
-    def _convolve_and_abs(self, wavelet, inp, stride=1, name="", trainable=False):
+    def _convolve_and_abs(
+        self, wavelet, inp, stride=1, name="", trainable=False
+    ):
         """
         Implement the operations for |inp*psi|. There initially, there
         will be a channel for each angle defined in the cascade. For
@@ -197,7 +205,9 @@ class Cascade2D(HasStrictTraits):
 
         # The output gets a special name, because it's here we attach
         # things to.
-        sqrt = Lambda(lambda x: keras_backend.sqrt(x), trainable=False, name=name)
+        sqrt = Lambda(
+            lambda x: keras_backend.sqrt(x), trainable=False, name=name
+        )
         self._endpoint_counter += 1
 
         real_part = DepthwiseConv2D(

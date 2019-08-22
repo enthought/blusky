@@ -17,9 +17,10 @@ from keras.layers import Layer
 
 class Node(HasStrictTraits):
     """
-   The nodes of the cascade tree keep track of the recipe
-   of the convolution and the scale.
-   """
+    An object that keeps the state at each point in the cascade.
+    It has applications for constructing the network, and then
+    maintaining scale/order information about the result.
+    """
 
     #: Name of the layer
     name = Str
@@ -31,7 +32,7 @@ class Node(HasStrictTraits):
     parent = Any
     #: Nodes are my children
     children = List
-    #: function that does something with the data in the node
+    #: contains an object, e.g. a Keras Layer.
     payload = Any
 
     def __str__(self):
@@ -51,20 +52,27 @@ class CascadeTree(HasStrictTraits):
     root_node = Instance(Node)
 
     def __init__(self, input_layer, **traits):
+        """
+        Parameters
+        ----------
+        input_layer - Any
+            An object at the root of the tree. To build a network this
+            would be a keras layer.
+        """
         self.root_node = Node(name="x", layer_name="x", payload=input_layer)
         super().__init__(**traits)
 
     def generate(self, wavelet_bank, conv_function):
         """
-       Generates a tree of wavelet convolutions to some
-       order:
-       Parameters
-       ----------
-       wavelet_bank - List(Array)
+        Generates a tree of wavelet convolutions to some order.
+
+        Parameters
+        ----------
+        wavelet_bank - List(Array)
            A list of wavelets as a 2-d array.
-       input_name - Str
+        input_name - Str
            The name of the tree.
-       """
+        """
 
         current_layer = [self.root_node]
         for stage in np.arange(self.order + 1):
@@ -89,6 +97,9 @@ class CascadeTree(HasStrictTraits):
 
     # layer by layer output
     def display(self):
+        """
+        Prints the tree out.
+        """
         current_layer = [self.root_node]
         for stage in np.arange(self.order + 1):
             next_layer = []
@@ -100,6 +111,14 @@ class CascadeTree(HasStrictTraits):
 
     # need a method to return a list of all (non root) nodes
     def get_convolutions(self):
+        """
+        Applys operators to all orders in the scattering transform.
+
+        Returns
+        -------
+        returns - List(Any)
+            A list of objects; their type defined my conv_function.
+        """
         current_layer = [self.root_node]
         all_convolutions = []
         # starting at the first layer, don't need the root node (input)

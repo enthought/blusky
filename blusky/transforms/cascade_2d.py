@@ -1,5 +1,3 @@
-from itertools import chain
-
 import keras.backend as keras_backend
 from keras.layers import DepthwiseConv2D, Lambda, Add
 import numpy as np

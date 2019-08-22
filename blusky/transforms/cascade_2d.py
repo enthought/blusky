@@ -2,15 +2,13 @@ from itertools import chain
 
 import keras.backend as keras_backend
 from keras.layers import (
-    MaxPooling2D,
     DepthwiseConv2D,
-    AveragePooling2D,
     Lambda,
     Add,
 )
 import numpy as np
 
-from traits.api import Enum, HasStrictTraits, Int, List, Tuple
+from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
 from blusky.transforms.cascade_tree import CascadeTree

@@ -65,6 +65,8 @@ class Cascade2D(HasStrictTraits):
     # orientation, define that here in degrees.
     angles = Tuple
 
+    #: Define a cascade tree data structure that can be used to navigate
+    #: the structure of the transform for any number of wavelets, to arbitrary order.
     cascade_tree = Instance(CascadeTree)
 
     #: Direction to Keras Conv2d on how to do padding at each convolution,
@@ -138,8 +140,8 @@ class Cascade2D(HasStrictTraits):
 
             # we don't want to introduce a phase, put the wavelet
             # in the corner.
-            x = np.roll(x, shape[0] // 2, axis=1)
-            x = np.roll(x, shape[1] // 2, axis=0)
+            # x = np.roll(x, shape[0] // 2, axis=1)
+            # x = np.roll(x, shape[1] // 2, axis=0)
 
             # apply to each input channel
             for ichan in range(shape[2]):
@@ -151,7 +153,7 @@ class Cascade2D(HasStrictTraits):
         self, wavelet, inp, stride=1, name="", trainable=False
     ):
         """
-        Implement the operations for |inp*psi|. There initially, there
+        Implement the operations for |inp*psi|. Initially, there
         will be a channel for each angle defined in the cascade. For
         subsequent convolutions, a abs/conv operation is applied to
         each channel in the input, for each angle defined in the
@@ -264,5 +266,5 @@ class Cascade2D(HasStrictTraits):
         """
         self.cascade_tree = CascadeTree(inp, order=self.depth)
         self.cascade_tree.generate(self.wavelets, self._convolve)
-        self.cascade_tree.display()
+
         return self.cascade_tree.get_convolutions()

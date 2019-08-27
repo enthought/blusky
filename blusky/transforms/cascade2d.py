@@ -17,6 +17,8 @@ from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
 class Cascade2D(HasStrictTraits):
     """
+    Caution this has a bug.
+    
     The idea here is to implement a cascade of convolvolution
     and modulus opertations.
     Suppose I had a sequence of wavelets, psi1, psi2, ...

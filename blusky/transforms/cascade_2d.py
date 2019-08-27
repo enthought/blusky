@@ -1,4 +1,4 @@
-from itertools import chain
+import re
 
 import keras.backend as keras_backend
 from keras.layers import (
@@ -131,7 +131,9 @@ class Cascade2D(HasStrictTraits):
             dtype = np.float32
 
         # precompute decimation
-        wavelet_stride,  _ = self.decimation.resolve_scales(node)
+        wavelet_stride,  conv_stride = self.decimation.resolve_scales(node)
+
+        print (wavelet_stride,  conv_stride, shape)
         
         # nx/ny is the image shape, num_inp/outp are the number of
         # channels inpit/output.
@@ -199,24 +201,29 @@ class Cascade2D(HasStrictTraits):
         returns - Keras Layer
             The result of the convolution and abs function.
         """
-        # 
-        name = node.name
+        # create a valid layer name
+        name = re.sub("[*,.|_]", "", node.name)
 
         # 
-        _,  conv_stride = self.decimation.resolve_scales(node)
+        wavelet_stride,  conv_stride = self.decimation.resolve_scales(node)
+
+        # after decimation
+        wavelet_shape = (wavelet.shape[0]//wavelet_stride, wavelet.shape[1]//wavelet_stride)
+        
+        print (name)
         
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
 
         # The output gets a special name, because it's here we attach
-        # things to.
+        # things to. We name to the (endpoint)
         sqrt = Lambda(
             lambda x: keras_backend.sqrt(x), trainable=False, name=name
         )
         self._endpoint_counter += 1
 
         real_part = DepthwiseConv2D(
-            kernel_size=wavelet.shape,
+            kernel_size=wavelet_shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
             padding=self._padding,
@@ -229,7 +236,7 @@ class Cascade2D(HasStrictTraits):
         real_part = square(real_part)
 
         imag_part = DepthwiseConv2D(
-            kernel_size=wavelet.shape,
+            kernel_size=wavelet_shape,
             depth_multiplier=len(self.angles),
             data_format="channels_last",
             padding=self._padding,

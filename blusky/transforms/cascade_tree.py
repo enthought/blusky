@@ -79,7 +79,7 @@ class CascadeTree(HasStrictTraits):
                             parent=current_node,
                         )
                         lhs = current_node.payload
-                        new_node.payload = conv_function(lhs, wv, layer_name)
+                        new_node.payload = conv_function(lhs, wv, new_node)
                         current_node.children.append(new_node)
                         next_layer.append(new_node)
             current_layer = next_layer

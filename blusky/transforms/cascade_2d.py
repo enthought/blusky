@@ -10,8 +10,10 @@ import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
 
-from blusky.wavelets.i_wavelet_2d import IWavelet2D
 from blusky.transforms.cascade_tree import CascadeTree
+from blusky.transforms.default_decimation import DefaultDecimation
+from blusky.transforms.i_decimation_method import IDecimationMethod
+from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
 
 class Cascade2D(HasStrictTraits):
@@ -37,10 +39,13 @@ class Cascade2D(HasStrictTraits):
                   ---> .. etc ..
     """
 
-    # provide a list of wavelets to define the cascade, the order is important,
+    #: provide a list of wavelets to define the cascade, the order is important,
     # the wavelets are applied in order.
     wavelets = List(IWavelet2D)
 
+    #: Provides methods for decimating at each layer in the transform.
+    decimation = Instance(IDecimationMethod)
+    
     # The depth of the transform, how many successive conv/abs iterations
     # to perform, this should be less than or equal to the number of wavelets
     # supplied.
@@ -96,7 +101,8 @@ class Cascade2D(HasStrictTraits):
 
         super().__init__(**traits)
 
-    def _init_weights(self, shape, dtype=None, wavelet2d=None, real_part=True):
+    def _init_weights(self, shape, node=None,
+                      dtype=None, wavelet2d=None, real_part=True):
         """
         Create an initializer for DepthwiseConv2D layers. We need these
         layers instead of Conv2D because we don't want it to stack across
@@ -124,6 +130,9 @@ class Cascade2D(HasStrictTraits):
         if dtype is None:
             dtype = np.float32
 
+        # precompute decimation
+        wavelet_stride,  _ = self.decimation.resolve_scales(node)
+        
         # nx/ny is the image shape, num_inp/outp are the number of
         # channels inpit/output.
         nx, ny, num_inp, num_outp = shape
@@ -136,16 +145,14 @@ class Cascade2D(HasStrictTraits):
         for iang, ang in enumerate(self.angles):
             wav = wavelet2d.kernel(ang)
 
+            # decimate wavelet
+            wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
+            
             # keras does 32-bit real number convolutions
             if real_part:
                 x = wav.real.astype(np.float32)
             else:
                 x = wav.imag.astype(np.float32)
-
-            # we don't want to introduce a phase, put the wavelet
-            # in the corner.
-            x = np.roll(x, shape[0] // 2, axis=1)
-            x = np.roll(x, shape[1] // 2, axis=0)
 
             # apply to each input channel
             for ichan in range(shape[2]):
@@ -154,7 +161,7 @@ class Cascade2D(HasStrictTraits):
         return keras_backend.variable(value=weights, dtype=dtype)
 
     def _convolve_and_abs(
-        self, wavelet, inp, stride=1, name="", trainable=False
+            self, wavelet, inp, node, trainable=False
     ):
         """
         Implement the operations for |inp*psi|. There initially, there
@@ -184,20 +191,20 @@ class Cascade2D(HasStrictTraits):
         stride - Int
             Set a stride across the convolutions. This should be determined
             by the scale of the transform.
-        name - Str
-            A name for the resulting layer.
-        trainable - Bool
-            You can think of the scattering transform as a pretrained network,
-            so this can be "false" for most applications.
-            The "abs" operation is a source of non-linearity, in an edge case
-            you might exploit this to train weights for a novel CNN.
+        node - Node
+            Node in the tree.
 
         Returns
         -------
         returns - Keras Layer
             The result of the convolution and abs function.
-
         """
+        # 
+        name = node.name
+
+        # 
+        _,  conv_stride = self.decimation.resolve_scales(node)
+        
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
 
@@ -213,10 +220,10 @@ class Cascade2D(HasStrictTraits):
             depth_multiplier=len(self.angles),
             data_format="channels_last",
             padding=self._padding,
-            strides=stride,
+            strides=conv_stride,
             trainable=trainable,
             depthwise_initializer=lambda args: self._init_weights(
-                args, real_part=True, wavelet2d=wavelet
+                args, node=node, real_part=True, wavelet2d=wavelet
             ),
         )(inp)
         real_part = square(real_part)
@@ -226,10 +233,10 @@ class Cascade2D(HasStrictTraits):
             depth_multiplier=len(self.angles),
             data_format="channels_last",
             padding=self._padding,
-            strides=stride,
+            strides=conv_stride,
             trainable=trainable,
             depthwise_initializer=lambda args: self._init_weights(
-                args, real_part=False, wavelet2d=wavelet
+                args, node=node, real_part=False, wavelet2d=wavelet
             ),
         )(inp)
         imag_part = square(imag_part)
@@ -237,17 +244,16 @@ class Cascade2D(HasStrictTraits):
         result = add([real_part, imag_part])
         return sqrt(result)
 
-    def _convolve(self, inp, psi, name):
+    def _convolve(self, inp, psi, node):
         """
         This computes |inp*psi|.
         Which, for efficiency, (optionally) downsamples the output of the
         convolution.
         """
-        # we're not going to downsample on this first pass
-        stride = 1  # 2 ** self.stride_log2
-
         # apply the conv_abs layers
-        conv = self._convolve_and_abs(psi, inp, stride=stride, name=name)
+        conv = self._convolve_and_abs(psi,
+                                      inp,
+                                      node)
 
         return conv
 

@@ -1,24 +1,17 @@
-from itertools import chain
-
 import keras.backend as keras_backend
-from keras.layers import (
-    MaxPooling2D,
-    DepthwiseConv2D,
-    AveragePooling2D,
-    Lambda,
-    Add,
-)
+from keras.layers import DepthwiseConv2D, Lambda, Add
 import numpy as np
 
-from traits.api import Enum, HasStrictTraits, Int, List, Tuple
+from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
+from blusky.transforms.cascade_tree import CascadeTree
 
 
 class Cascade2D(HasStrictTraits):
     """
     Caution this has a bug.
-    
+
     The idea here is to implement a cascade of convolvolution
     and modulus opertations.
     Suppose I had a sequence of wavelets, psi1, psi2, ...
@@ -74,6 +67,11 @@ class Cascade2D(HasStrictTraits):
     # orientation, define that here in degrees.
     angles = Tuple
 
+    #: Define a cascade tree data structure that can be used to navigate
+    #: the structure of the transform for any number of wavelets, to
+    #: arbitrary order.
+    cascade_tree = Instance(CascadeTree)
+
     #: Direction to Keras Conv2d on how to do padding at each convolution,
     #  "same" pads with zeros, "valid" doesn't. This doesn't replace the
     #  need to pad tiles during preprocessing, however, "same" will maintain
@@ -107,6 +105,20 @@ class Cascade2D(HasStrictTraits):
         ----------
         wavelet2d - IWavelet2D
             An object to create a wavelet.
+
+        dtype - Float
+            Data type for the wavelet, default is float32
+
+        real_part - Bool
+            If true it will initialize the convolutional weights
+            with the real-part of the wavelet, if false, the
+            imaginary part.
+
+        Returns
+        -------
+        returns - tensorflow variable
+            returns a tensorflow variable containing the weights.
+
         """
         if dtype is None:
             dtype = np.float32
@@ -129,20 +141,56 @@ class Cascade2D(HasStrictTraits):
             else:
                 x = wav.imag.astype(np.float32)
 
-            # we don't want to introduce a phase, put the wavelet
-            # in the corner.
-            x = np.roll(x, shape[0] // 2, axis=1)
-            x = np.roll(x, shape[1] // 2, axis=0)
-
             # apply to each input channel
             for ichan in range(shape[2]):
                 weights[:, :, ichan, iang] = x[: shape[0], : shape[1]]
 
         return keras_backend.variable(value=weights, dtype=dtype)
 
-    def _convolve_and_abs(self, wavelet, inp, stride=1):
+    def _convolve_and_abs(
+        self, wavelet, inp, stride=1, name="", trainable=False
+    ):
         """
-        Implement the operations for |x*psi|
+        Implement the operations for |inp*psi|. Initially, there
+        will be a channel for each angle defined in the cascade. For
+        subsequent convolutions, a abs/conv operation is applied to
+        each channel in the input, for each angle defined in the
+        cascade.
+
+        For example, if we have 3-angles defined in the cascade (angles)
+
+        transform order | number of channels output
+        ----------------------
+        order 1         | 3-channels
+        order 2         | 9-channels
+        order 3         | 27-channels
+
+
+        Parameters
+        ----------
+        wavelet - IWavelet2D
+            A wavelet object used to generate weights for each angles,
+            defined in self.angles.
+        inp - Keras Layer
+            A keras layer to apply the convolution to. For example,
+            an input layer. Or subsequently the output of the previous
+            convolutions.
+        stride - Int
+            Set a stride across the convolutions. This should be determined
+            by the scale of the transform.
+        name - Str
+            A name for the resulting layer.
+        trainable - Bool
+            You can think of the scattering transform as a pretrained network,
+            so this can be "false" for most applications.
+            The "abs" operation is a source of non-linearity, in an edge case
+            you might exploit this to train weights for a novel CNN.
+
+        Returns
+        -------
+        returns - Keras Layer
+            The result of the convolution and abs function.
+
         """
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
@@ -150,11 +198,7 @@ class Cascade2D(HasStrictTraits):
         # The output gets a special name, because it's here we attach
         # things to.
         sqrt = Lambda(
-            lambda x: keras_backend.sqrt(x),
-            trainable=False,
-            name="endpoint-{}/{}".format(
-                self._endpoint_counter, self._current_order
-            ),
+            lambda x: keras_backend.sqrt(x), trainable=False, name=name
         )
         self._endpoint_counter += 1
 
@@ -164,7 +208,7 @@ class Cascade2D(HasStrictTraits):
             data_format="channels_last",
             padding=self._padding,
             strides=stride,
-            trainable=False,
+            trainable=trainable,
             depthwise_initializer=lambda args: self._init_weights(
                 args, real_part=True, wavelet2d=wavelet
             ),
@@ -177,7 +221,7 @@ class Cascade2D(HasStrictTraits):
             data_format="channels_last",
             padding=self._padding,
             strides=stride,
-            trainable=False,
+            trainable=trainable,
             depthwise_initializer=lambda args: self._init_weights(
                 args, real_part=False, wavelet2d=wavelet
             ),
@@ -187,62 +231,38 @@ class Cascade2D(HasStrictTraits):
         result = add([real_part, imag_part])
         return sqrt(result)
 
-    def _max_pooling(self, conv_abs_layers, stride):
-        pooling = MaxPooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
-        )
-        return [pooling(i) for i in conv_abs_layers]
-
-    def _avg_pooling(self, conv_abs_layers, stride):
-        pooling = AveragePooling2D(
-            pool_size=(self.pooling_size, self.pooling_size),
-            padding=self._padding,
-        )
-        return [pooling(i) for i in conv_abs_layers]
-
-    def _convolve_and_pool(self, inp, wavelets):
+    def _convolve(self, inp, psi, name):
         """
-        This computes |x * psi| and applies a pooling to the result.
+        This computes |inp*psi|.
         Which, for efficiency, (optionally) downsamples the output of the
         convolution.
         """
-        stride = 2 ** self.stride_log2
+        # we're not going to downsample on this first pass
+        stride = 1  # 2 ** self.stride_log2
 
         # apply the conv_abs layers
-        conv_abs_layers = [
-            self._convolve_and_abs(wav, inp, stride=stride) for wav in wavelets
-        ]
+        conv = self._convolve_and_abs(psi, inp, stride=stride, name=name)
 
-        # optionally apply pooling
-        if self.pooling_type == "max":
-            conv_abs_layers = self._max_pooling(conv_abs_layers)
-        elif self.pooling_type == "average":
-            conv_abs_layers = self._avg_pooling(conv_abs_layers)
-
-        # return the conv abs layers optionally pooled.
-        return conv_abs_layers
+        return conv
 
     def transform(self, inp):
         """
         Apply abs/conv operations to arbitrary order.
         Doesn't apply the DC term, just the subsequent layers.
+
+        Parameters
+        ----------
+        inp - Keras Layer
+            The input at the root of the cascade. Would generally
+            be a Keras Input Layer.
+
+        Returns
+        -------
+        returns - Keras Model
+            Returns a keras model applying the conv/abs operations
+            of the scattering transform to the input.
         """
-        transform_order = []
-        last_layer = [inp]
-        # orders 1, 2, ...
-        for order in range(1, self.depth + 1):
-            self._current_order = order
-            # wavelets need to be ordered by bandwidth so this makes sense.
-            last_layer = list(
-                chain(
-                    *[
-                        self._convolve_and_pool(i, self.wavelets[order - 1:])
-                        for i in last_layer
-                    ]
-                )
-            )
+        self.cascade_tree = CascadeTree(inp, order=self.depth)
+        self.cascade_tree.generate(self.wavelets, self._convolve)
 
-            transform_order.append(last_layer)
-
-        return list(chain(*transform_order))
+        return self.cascade_tree.get_convolutions()

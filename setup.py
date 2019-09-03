@@ -47,6 +47,7 @@ setup(
     install_requires=["numpy",
                       "traits", 
                       "flake8",
+                      "PIL",
                       "tensorflow",
                       "keras"
                       ],  

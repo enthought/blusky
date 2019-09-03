@@ -70,8 +70,10 @@ class CascadeTree(HasStrictTraits):
                     scale = i + 1
                     if scale > current_node.scale:
                         new_name = "|%s*psi_%d|" % (current_node.name, scale)
-                        layer_name = "%s-psi_%d" % (current_node.layer_name,
-                                                    scale)
+                        layer_name = "%s-psi_%d" % (
+                            current_node.layer_name,
+                            scale,
+                        )
                         new_node = Node(
                             name=new_name,
                             layer_name=layer_name,

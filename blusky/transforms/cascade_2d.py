@@ -1,11 +1,7 @@
 import re
 
 import keras.backend as keras_backend
-from keras.layers import (
-    DepthwiseConv2D,
-    Lambda,
-    Add,
-)
+from keras.layers import DepthwiseConv2D, Lambda, Add
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
@@ -19,7 +15,7 @@ from blusky.wavelets.i_wavelet_2d import IWavelet2D
 class Cascade2D(HasStrictTraits):
     """
     Caution this has a bug.
-    
+
     The idea here is to implement a cascade of convolvolution
     and modulus opertations.
     Suppose I had a sequence of wavelets, psi1, psi2, ...
@@ -78,6 +74,9 @@ class Cascade2D(HasStrictTraits):
     # orientation, define that here in degrees.
     angles = Tuple
 
+    #: Define a cascade tree data structure that can be used to navigate
+    #: the structure of the transform for any number of wavelets, to
+    #: arbitrary order.
     cascade_tree = Instance(CascadeTree)
 
     #: Direction to Keras Conv2d on how to do padding at each convolution,
@@ -168,7 +167,7 @@ class Cascade2D(HasStrictTraits):
             self, wavelet, inp, node, trainable=False
     ):
         """
-        Implement the operations for |inp*psi|. There initially, there
+        Implement the operations for |inp*psi|. Initially, there
         will be a channel for each angle defined in the cascade. For
         subsequent convolutions, a abs/conv operation is applied to
         each channel in the input, for each angle defined in the
@@ -210,7 +209,8 @@ class Cascade2D(HasStrictTraits):
         wavelet_stride,  conv_stride = self.decimation.resolve_scales(node)
 
         # after decimation
-        wavelet_shape = (wavelet.shape[0]//wavelet_stride, wavelet.shape[1]//wavelet_stride)
+        wavelet_shape = (wavelet.shape[0]//wavelet_stride,
+                         wavelet.shape[1]//wavelet_stride)
         
         print (name)
         
@@ -285,5 +285,5 @@ class Cascade2D(HasStrictTraits):
         """
         self.cascade_tree = CascadeTree(inp, order=self.depth)
         self.cascade_tree.generate(self.wavelets, self._convolve)
-        self.cascade_tree.display()
+
         return self.cascade_tree.get_convolutions()

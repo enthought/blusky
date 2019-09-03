@@ -66,7 +66,8 @@ class Cascade2D(HasStrictTraits):
     angles = Tuple
 
     #: Define a cascade tree data structure that can be used to navigate
-    #: the structure of the transform for any number of wavelets, to arbitrary order.
+    #: the structure of the transform for any number of wavelets, to
+    #: arbitrary order.
     cascade_tree = Instance(CascadeTree)
 
     #: Direction to Keras Conv2d on how to do padding at each convolution,

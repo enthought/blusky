@@ -47,9 +47,9 @@ setup(
     install_requires=["numpy",
                       "traits", 
                       "flake8",
-                      "PIL",
-                      "tensorflow",
-                      "keras"
+                      "pillow",
+                      "tensorflow<=1.14",
+                      "keras<=2.2.4-8"
                       ],  
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"

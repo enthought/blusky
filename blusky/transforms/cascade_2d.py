@@ -10,6 +10,8 @@ from blusky.transforms.cascade_tree import CascadeTree
 
 class Cascade2D(HasStrictTraits):
     """
+    Caution this has a bug.
+    
     The idea here is to implement a cascade of convolvolution
     and modulus opertations.
     Suppose I had a sequence of wavelets, psi1, psi2, ...

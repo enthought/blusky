@@ -138,11 +138,6 @@ class Cascade2D(HasStrictTraits):
             else:
                 x = wav.imag.astype(np.float32)
 
-            # we don't want to introduce a phase, put the wavelet
-            # in the corner.
-            # x = np.roll(x, shape[0] // 2, axis=1)
-            # x = np.roll(x, shape[1] // 2, axis=0)
-
             # apply to each input channel
             for ichan in range(shape[2]):
                 weights[:, :, ichan, iang] = x[: shape[0], : shape[1]]

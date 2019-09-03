@@ -38,12 +38,18 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    packages=find_packages(exclude=["contrib", "docs", "tests"]),
+    packages=find_packages(exclude=["contrib",
+                                    "docs",
+                                    "tests"]),
     python_requires=">=3.6",
-    # This field lists other packages that your project depends on to run.
-    # Any package you put here will be installed by pip when your project is
-    # installed, so they must be valid existing projects.
-    install_requires=["numpy", "traits", "flake8"],  # Optional
+
+    # This is for getting through appveyor, install tensorflow_gpu if you can.
+    install_requires=["numpy",
+                      "traits", 
+                      "flake8",
+                      "tensorflow",
+                      "keras"
+                      ],  
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
     # syntax, for example:

@@ -15,7 +15,8 @@ import blusky.datasets as datasets
 class TestAlgorithms(unittest.TestCase):
     def test_cascade_2d_results(self):
         """
-        Create a 2d cascade with three wavelets and order 3, and compare results with manual convolution.
+        Create a 2d cascade with three wavelets and order 3, and compare
+        results with manual convolution.
         """
         wav1 = Morlet2D(
             sample_rate=0.004,
@@ -143,7 +144,8 @@ class TestAlgorithms(unittest.TestCase):
         )
         wav1_k = wav1.kernel(0.0)
 
-        # Form the Dirac function, just a unit impulse in the center of the image.
+        # Form the Dirac function, just a unit impulse in the center of the
+        # image.
         dirac = np.zeros((99, 99))
         dirac[50, 50] = 1.0
 
@@ -170,4 +172,3 @@ class TestAlgorithms(unittest.TestCase):
             cnn_conv_dirac_crop,
             err_msg="Convolution does not match test values.",
         )
-

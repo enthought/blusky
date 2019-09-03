@@ -2,8 +2,7 @@
 from traits.api import HasStrictTraits, Int, provides
 
 from blusky.transforms.i_decimation_method import IDecimationMethod
-
-
+    
 @provides(IDecimationMethod)
 class DefaultDecimation(HasStrictTraits):
     """ 
@@ -77,3 +76,40 @@ class DefaultDecimation(HasStrictTraits):
         msg = "Just use the conv_factor as the stride in the Conv layer."
         raise NotImplementedError(msg)
 
+@provides(IDecimationMethod)
+class NoDecimation(HasStrictTraits):
+    """
+    Inefficient, but mathematically correct. Use this for testing.
+    """
+
+    def resolve_scales(self, node):
+        """ 
+        Doesn't matter, always returns "1".
+
+        Parameters
+        ----------
+        cascade_tree - Node
+            A node in a tree structure that tracks the scale and order of the 
+            transform.
+
+        Returns
+        -------
+        wavelet_factor - Int
+            The factor to decimate the wavelet.
+        conv_factor - Int
+            The factor to decimate the resulting convolution.
+        """ 
+        return 1, 1
+    
+    def decimate_wavelet(self, wav, factor):
+        """ Doesn't apply decimation to wavelet.
+        Returns 
+        -------
+        wavelet - Array
+        """
+        return wav
+        
+    def decimate_convolution(self, inp, factor):
+        """ Doesn't do anything.
+        """
+        return inp

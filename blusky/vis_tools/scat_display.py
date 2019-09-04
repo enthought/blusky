@@ -268,7 +268,7 @@ def scat_display(inner,dirac,options,scatt):
     
     options = AttrDict(options)        
     options.null = 0
-    print('null is ' + str(options.null)) #what does this do?
+    #print('null is ' + str(options.null)) #why?
     
     use_whole_ener=getoptions(options,'use_whole_ener',0) 
     null=getoptions(options,'null',-999)

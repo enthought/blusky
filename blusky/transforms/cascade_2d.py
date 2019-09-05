@@ -43,7 +43,7 @@ class Cascade2D(HasStrictTraits):
 
     #: Provides methods for decimating at each layer in the transform.
     decimation = Instance(IDecimationMethod, NoDecimation())
-    
+
     # The depth of the transform, how many successive conv/abs iterations
     # to perform, this should be less than or equal to the number of wavelets
     # supplied.
@@ -102,8 +102,9 @@ class Cascade2D(HasStrictTraits):
 
         super().__init__(**traits)
 
-    def _init_weights(self, shape, node=None,
-                      dtype=None, wavelet2d=None, real_part=True):
+    def _init_weights(
+        self, shape, node=None, dtype=None, wavelet2d=None, real_part=True
+    ):
         """
         Create an initializer for DepthwiseConv2D layers. We need these
         layers instead of Conv2D because we don't want it to stack across
@@ -132,10 +133,8 @@ class Cascade2D(HasStrictTraits):
             dtype = np.float32
 
         # precompute decimation
-        wavelet_stride,  conv_stride = self.decimation.resolve_scales(node)
+        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
-        print (wavelet_stride,  conv_stride, shape)
-        
         # nx/ny is the image shape, num_inp/outp are the number of
         # channels inpit/output.
         nx, ny, num_inp, num_outp = shape
@@ -150,7 +149,7 @@ class Cascade2D(HasStrictTraits):
 
             # decimate wavelet
             wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
-            
+
             # keras does 32-bit real number convolutions
             if real_part:
                 x = wav.real.astype(np.float32)
@@ -163,9 +162,7 @@ class Cascade2D(HasStrictTraits):
 
         return keras_backend.variable(value=weights, dtype=dtype)
 
-    def _convolve_and_abs(
-            self, wavelet, inp, node, trainable=False
-    ):
+    def _convolve_and_abs(self, wavelet, inp, node, trainable=False):
         """
         Implement the operations for |inp*psi|. Initially, there
         will be a channel for each angle defined in the cascade. For
@@ -205,15 +202,15 @@ class Cascade2D(HasStrictTraits):
         # create a valid layer name
         name = re.sub("[*,.|_]", "", node.name)
 
-        # 
-        wavelet_stride,  conv_stride = self.decimation.resolve_scales(node)
+        #
+        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
         # after decimation
-        wavelet_shape = (wavelet.shape[0]//wavelet_stride,
-                         wavelet.shape[1]//wavelet_stride)
-        
-        print (name)
-        
+        wavelet_shape = (
+            wavelet.shape[0] // wavelet_stride,
+            wavelet.shape[1] // wavelet_stride,
+        )
+
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
 
@@ -260,9 +257,7 @@ class Cascade2D(HasStrictTraits):
         convolution.
         """
         # apply the conv_abs layers
-        conv = self._convolve_and_abs(psi,
-                                      inp,
-                                      node)
+        conv = self._convolve_and_abs(psi, inp, node)
 
         return conv
 

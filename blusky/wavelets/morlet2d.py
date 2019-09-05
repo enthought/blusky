@@ -1,14 +1,6 @@
 import numpy as np
 
-from traits.api import (
-    Bool,
-    Float,
-    HasStrictTraits,
-    Int,
-    Property,
-    provides,
-    Tuple,
-)
+from traits.api import Bool, Float, HasStrictTraits, Int, Property, provides, Tuple
 
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
@@ -62,10 +54,12 @@ class Morlet2D(HasStrictTraits):
     # computation cost (small the better).
     shape = Property(Tuple(Int, Int), depends_on=["_sigma"])
 
+    #: (Optional) labels scale of wavelet, makes osense in a filter bank.
+    scale = Int(-1)
+
     #: measured in "samples"
     _sigma = Property(
-        Tuple(Float, Float),
-        depends_on=["bandwidth", "center_frequency", "sample_rate"],
+        Tuple(Float, Float), depends_on=["bandwidth", "center_frequency", "sample_rate"]
     )
 
     def __init__(self, center_frequency, bandwidth, sample_rate, **traits):
@@ -112,6 +106,7 @@ class Morlet2D(HasStrictTraits):
         gaussian with standard deviation: sigma' = 1/sigma
         bandwidth, measured at FWHM ~ 2.355 / sigma
         """
+
         def to_ang(f):
             return 2 * np.pi * f * self.sample_rate
 
@@ -131,9 +126,7 @@ class Morlet2D(HasStrictTraits):
     def _taper(self):
         """ Compute hanning window to taper image.
         """
-        taper = np.outer(
-            np.kaiser(self.shape[0], 3), np.kaiser(self.shape[1], 3)
-        )
+        taper = np.outer(np.kaiser(self.shape[0], 3), np.kaiser(self.shape[1], 3))
         return taper
 
     def kernel(self, theta):
@@ -166,15 +159,12 @@ class Morlet2D(HasStrictTraits):
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 
         # the gaussian envelope is measured in samples
-        X = X - M//2
-        Y = Y - M//2
+        X = X - M // 2
+        Y = Y - M // 2
 
         # rotation matrix
         Rth = np.array(
-            [
-                [np.cos(_theta), np.sin(_theta)],
-                [-np.sin(_theta), np.cos(_theta)],
-            ]
+            [[np.cos(_theta), np.sin(_theta)], [-np.sin(_theta), np.cos(_theta)]]
         )
 
         # envelope in the major/minor directions
@@ -206,9 +196,7 @@ class Morlet2D(HasStrictTraits):
         #
         gabc = oscilating_part - K * gaussian_envelope
 
-        normalized_wavelet = (
-            1 / (2 * np.pi * self._sigma[0] * self._sigma[1]) * gabc
-        )
+        normalized_wavelet = 1 / (2 * np.pi * self._sigma[0] * self._sigma[1]) * gabc
 
         if self.taper:
             normalized_wavelet *= self._taper()

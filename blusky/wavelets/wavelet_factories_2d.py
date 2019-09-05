@@ -91,6 +91,7 @@ def vanilla_morlet_2d(
         bandwidth=bandwidth,
         crop=crop,
         taper=taper,
+        scale=j + 1,  # defines the rate at which we decimate
     )
 
     return wav
@@ -183,6 +184,7 @@ def vanilla_gabor_2d(
         bandwidth=bandwidth,
         crop=crop,
         taper=taper,
+        scale=j + 1,  # defines the rate at which we decimate
     )
 
     return wav

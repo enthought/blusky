@@ -94,6 +94,7 @@ class TestAlgorithms(unittest.TestCase):
         angle_index = 0
 
         # get the corresponding convolution result in the cascade
+        print(len(result), image_index, angle_index)
         cnn_conv = result[endpoint][image_index, :, :, angle_index]
 
         print("Testing 1st order...")

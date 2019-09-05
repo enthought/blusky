@@ -8,6 +8,7 @@ from blusky.transforms.default_decimation import (
     DefaultDecimation,
     NoDecimation,
 )
+from traits.api import HasStrictTraits, Int
 
 
 class TestAlgorithms(unittest.TestCase):
@@ -29,8 +30,14 @@ class TestAlgorithms(unittest.TestCase):
         """
         import numpy as np
 
+        class test_wav(HasStrictTraits):
+            scale = Int(1)
+
         cascade_tree = CascadeTree(Input(shape=(99, 99, 1)), order=3)
-        cascade_tree.generate([1, 2, 3], lambda x, y, z: x)
+        cascade_tree.generate(
+            [test_wav(scale=1), test_wav(scale=2), test_wav(scale=3)],
+            lambda x, y, z: x,
+        )
 
         # go down a path in the tree
         root_node = cascade_tree.root_node

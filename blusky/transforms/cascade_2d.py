@@ -7,7 +7,7 @@ import numpy as np
 from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
 
 from blusky.transforms.cascade_tree import CascadeTree
-from blusky.transforms.default_decimation import DefaultDecimation
+from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
 from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
@@ -42,7 +42,7 @@ class Cascade2D(HasStrictTraits):
     wavelets = List(IWavelet2D)
 
     #: Provides methods for decimating at each layer in the transform.
-    decimation = Instance(IDecimationMethod)
+    decimation = Instance(IDecimationMethod, NoDecimation())
     
     # The depth of the transform, how many successive conv/abs iterations
     # to perform, this should be less than or equal to the number of wavelets

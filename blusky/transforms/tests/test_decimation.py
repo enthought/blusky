@@ -2,7 +2,6 @@ import unittest
 
 from keras.layers import Input
 
-from blusky.transforms.cascade_2d import Cascade2D
 from blusky.transforms.cascade_tree import CascadeTree
 from blusky.transforms.default_decimation import (
     DefaultDecimation,

@@ -37,8 +37,9 @@ class Cascade2D(HasStrictTraits):
                   ---> .. etc ..
     """
 
-    #: provide a list of wavelets to define the cascade, the order is important,
-    # the wavelets are applied in order.
+    #: provide a list of wavelets to define the cascade, the order is
+    # important if the scale is not set within the wavelets themselves
+    # because the cascade tree will default to scale ordering.
     wavelets = List(IWavelet2D)
 
     #: Provides methods for decimating at each layer in the transform.

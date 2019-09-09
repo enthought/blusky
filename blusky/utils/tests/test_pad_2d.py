@@ -116,7 +116,9 @@ class TestPad2D(unittest.TestCase):
         model_2 = Model(inputs=inp, outputs=convs)
 
         padded = np.pad(
-            np.array(self.imgs[:1]), ((0, 0), (16, 16), (16, 16), (0, 0)), "reflect"
+            np.array(self.imgs[:1]),
+            ((0, 0), (16, 16), (16, 16), (0, 0)),
+            "reflect",
         )
 
         result_2 = model_2.predict(padded)

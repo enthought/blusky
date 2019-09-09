@@ -99,6 +99,24 @@ class Pad2D(HasStrictTraits):
         return ReflectionPadding2D((self._padx, self._pady))(inp)
 
     def unpad(self, inp, wv, node):
+        """
+        Parameters
+        ----------
+        inp - Keras Layer
+            Gets padded.
+        wavelets - List(wavelets)
+            List of wavelets, looks at these finds the largest and
+            uses 1/2 it's size as padding.
+        node - Node 
+            A node of the cascade tree used to generate the cascade. 
+            With the same wavelet bank and decimation it generates 
+            corrects for the successive decimation.
+        
+        Returns
+        -------
+        unpadded - Keras Layer
+            Returns a layer to unpadded.
+        """
         if self.conv_padding == "same":
             return self._unpad_same(inp, wv, node)
         else:

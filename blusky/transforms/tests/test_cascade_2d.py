@@ -13,11 +13,21 @@ import blusky.datasets as datasets
 
 
 class TestAlgorithms(unittest.TestCase):
+    def setUp(self):
+        # define the test cascade. use
+        self.cascade = Cascade2D(
+            "none",
+            0,
+            angles=(0.0, 45, 90)
+        )
+
     def test_cascade_2d_results(self):
         """
         Create a 2d cascade with three wavelets and order 3, and compare
         results with manual convolution.
         """
+        from blusky.transforms.cascade_tree import CascadeTree
+
         wav1 = Morlet2D(
             sample_rate=0.004,
             center_frequency=90.0,
@@ -57,16 +67,11 @@ class TestAlgorithms(unittest.TestCase):
         # shape of the input images in the test suite
         inp = Input(shape=(nh, nw, 1))
 
-        # define the test cascade. use
-        cascade = Cascade2D(
-            "none",
-            0,
-            depth=3,
-            angles=(0.0, 45, 90),
-            wavelets=[wav1, wav2, wav3],
-        )
+        cascade_tree = CascadeTree(inp, order=3)
+        cascade_tree.generate([wav1, wav2, wav3], self.cascade._convolve)
+        my_transform = cascade_tree.get_convolutions()
+
         # create the transform
-        my_transform = cascade.transform(inp)
         model = Model(inputs=inp, outputs=my_transform)
 
         # run the image through the transform cascade
@@ -94,10 +99,8 @@ class TestAlgorithms(unittest.TestCase):
         angle_index = 0
 
         # get the corresponding convolution result in the cascade
-        print(len(result), image_index, angle_index)
         cnn_conv = result[endpoint][image_index, :, :, angle_index]
 
-        print("Testing 1st order...")
         np.testing.assert_almost_equal(
             conv, cnn_conv, err_msg="Convolution does not match test values."
         )
@@ -114,7 +117,6 @@ class TestAlgorithms(unittest.TestCase):
 
         cnn_conv2 = result[endpoint][image_index, :, :, angle_index]
 
-        print("Testing 2nd order...")
         np.testing.assert_almost_equal(
             conv2, cnn_conv2, err_msg="Convolution does not match test values."
         )
@@ -127,7 +129,6 @@ class TestAlgorithms(unittest.TestCase):
         conv3 = np.abs(convolve2d(conv2, wav3_k, mode="same"))
         cnn_conv3 = result[endpoint][image_index, :, :, angle_index]
 
-        print("Testing 3rd order...")
         np.testing.assert_almost_equal(
             conv3, cnn_conv3, err_msg="Convolution does not match test values."
         )
@@ -136,6 +137,8 @@ class TestAlgorithms(unittest.TestCase):
         """
         Test that a Dirac function input returns the original wavelet.
         """
+        from blusky.transforms.cascade_tree import CascadeTree
+
         wav1 = Morlet2D(
             sample_rate=0.004,
             center_frequency=90.0,
@@ -157,17 +160,17 @@ class TestAlgorithms(unittest.TestCase):
         # shape of the input images in the test suite
         inp = Input(shape=(99, 99, 1))
 
-        # define the test cascade. use
-        cascade = Cascade2D("none", 0, depth=3, angles=(0.0,), wavelets=[wav1])
-        # create the transform
-        my_transform = cascade.transform(inp)
+        cascade_tree = CascadeTree(inp, order=3)
+        cascade_tree.generate([wav1], self.cascade._convolve)
+        my_transform = cascade_tree.get_convolutions()
+
         model = Model(inputs=inp, outputs=my_transform)
 
         result = model.predict(imgs)
 
         cnn_conv_dirac = result[0, :, :, 0]
         cnn_conv_dirac_crop = cnn_conv_dirac[44:57, 44:57]
-        print("Testing Dirac wavelet identity...")
+
         np.testing.assert_almost_equal(
             np.abs(wav1_k),
             cnn_conv_dirac_crop,

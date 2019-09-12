@@ -4,12 +4,10 @@ import keras.backend as keras_backend
 from keras.layers import DepthwiseConv2D, Lambda, Add
 import numpy as np
 
-from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
+from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
 
-from blusky.transforms.cascade_tree import CascadeTree
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
-from blusky.wavelets.i_wavelet_2d import IWavelet2D
 
 
 class Cascade2D(HasStrictTraits):
@@ -37,18 +35,8 @@ class Cascade2D(HasStrictTraits):
                   ---> .. etc ..
     """
 
-    #: provide a list of wavelets to define the cascade, the order is
-    # important if the scale is not set within the wavelets themselves
-    # because the cascade tree will default to scale ordering.
-    wavelets = List(IWavelet2D)
-
     #: Provides methods for decimating at each layer in the transform.
     decimation = Instance(IDecimationMethod, NoDecimation())
-
-    # The depth of the transform, how many successive conv/abs iterations
-    # to perform, this should be less than or equal to the number of wavelets
-    # supplied.
-    depth = Int(2)
 
     #: Subsequent convolutions can be applied to downsampled images for
     #  efficiency.
@@ -74,11 +62,6 @@ class Cascade2D(HasStrictTraits):
     #: In 2D we will apply the transform over a set of wavelets are different
     # orientation, define that here in degrees.
     angles = Tuple
-
-    #: Define a cascade tree data structure that can be used to navigate
-    #: the structure of the transform for any number of wavelets, to
-    #: arbitrary order.
-    cascade_tree = Instance(CascadeTree)
 
     #: Direction to Keras Conv2d on how to do padding at each convolution,
     #  "same" pads with zeros, "valid" doesn't. This doesn't replace the
@@ -262,7 +245,7 @@ class Cascade2D(HasStrictTraits):
 
         return conv
 
-    def transform(self, inp):
+    def transform(self, cascade_tree, wavelets):
         """
         Apply abs/conv operations to arbitrary order.
         Doesn't apply the DC term, just the subsequent layers.
@@ -279,7 +262,6 @@ class Cascade2D(HasStrictTraits):
             Returns a keras model applying the conv/abs operations
             of the scattering transform to the input.
         """
-        self.cascade_tree = CascadeTree(inp, order=self.depth)
-        self.cascade_tree.generate(self.wavelets, self._convolve)
+        cascade_tree.generate(wavelets, self._convolve)
 
-        return self.cascade_tree.get_convolutions()
+        return cascade_tree.get_convolutions()

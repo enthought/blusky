@@ -50,7 +50,6 @@ class TestPad2D(unittest.TestCase):
         self.assertTrue(padded.shape[2] == 161)
 
     def test_unpad_1(self):
-        from blusky.transforms.cascade_2d import Cascade2D
         from blusky.transforms.cascade_tree import CascadeTree
 
         inp = Input(shape=(99, 99, 1))
@@ -85,7 +84,6 @@ class TestPad2D(unittest.TestCase):
         self.assertTrue(unpadded_convs[5].shape[2] == 13)
 
     def test_unpad_2(self):
-        from blusky.transforms.cascade_2d import Cascade2D
         from blusky.transforms.cascade_tree import CascadeTree
 
         # --- Pad/Unpad --- #

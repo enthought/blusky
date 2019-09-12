@@ -5,7 +5,7 @@ from keras.layers.convolutional import ZeroPadding2D
 import numpy as np
 import tensorflow as tf
 
-from traits.api import Enum, HasStrictTraits, Instance, Int, Unicode
+from traits.api import Enum, HasStrictTraits, Instance, Int
 
 from blusky.transforms.i_decimation_method import IDecimationMethod
 
@@ -139,4 +139,4 @@ class Pad2D(HasStrictTraits):
         )
 
     def _unpad_valid(self, inp, wv, node):
-        raise NotImplemented()
+        raise NotImplementedError()

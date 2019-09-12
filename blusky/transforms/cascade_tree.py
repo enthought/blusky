@@ -66,8 +66,12 @@ class CascadeTree(HasStrictTraits):
         for stage in np.arange(self.order + 1):
             next_layer = []
             for current_node in current_layer:
-                for i, wv in enumerate(wavelet_bank):
-                    scale = i + 1
+                for sc, wv in enumerate(wavelet_bank):
+                    if wv.scale < 0:
+                        scale = sc + 1
+                    else:
+                        scale = wv.scale
+
                     if scale > current_node.scale:
                         new_name = "|%s*psi_%d|" % (current_node.name, scale)
                         layer_name = "%s-psi_%d" % (
@@ -81,7 +85,7 @@ class CascadeTree(HasStrictTraits):
                             parent=current_node,
                         )
                         lhs = current_node.payload
-                        new_node.payload = conv_function(lhs, wv, layer_name)
+                        new_node.payload = conv_function(lhs, wv, new_node)
                         current_node.children.append(new_node)
                         next_layer.append(new_node)
             current_layer = next_layer

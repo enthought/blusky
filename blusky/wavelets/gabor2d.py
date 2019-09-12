@@ -61,6 +61,11 @@ class Gabor2D(HasStrictTraits):
     # computation cost (small the better).
     shape = Property(Tuple(Int, Int), depends_on=["_sigma"])
 
+    #: (Optional) labels scale of wavelet, makes sense in a filter bank.
+    # Defaults to -1, which is an invalid scale number.  If the scale
+    # is not explicitly set, then scale will be inferred from ordering.
+    scale = Int(-1)
+
     #: measured in "samples"
     _sigma = Property(
         Tuple(Float, Float),

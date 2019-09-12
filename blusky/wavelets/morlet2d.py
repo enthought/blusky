@@ -62,6 +62,11 @@ class Morlet2D(HasStrictTraits):
     # computation cost (small the better).
     shape = Property(Tuple(Int, Int), depends_on=["_sigma"])
 
+    #: (Optional) labels scale of wavelet, makes osense in a filter bank.
+    # Defaults to -1, which is an invalid scale number.  If the scale
+    # is not explicitly set, then scale will be inferred from ordering.
+    scale = Int(-1)
+
     #: measured in "samples"
     _sigma = Property(
         Tuple(Float, Float),
@@ -112,6 +117,7 @@ class Morlet2D(HasStrictTraits):
         gaussian with standard deviation: sigma' = 1/sigma
         bandwidth, measured at FWHM ~ 2.355 / sigma
         """
+
         def to_ang(f):
             return 2 * np.pi * f * self.sample_rate
 
@@ -166,8 +172,8 @@ class Morlet2D(HasStrictTraits):
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 
         # the gaussian envelope is measured in samples
-        X = X - M//2
-        Y = Y - M//2
+        X = X - M // 2
+        Y = Y - M // 2
 
         # rotation matrix
         Rth = np.array(

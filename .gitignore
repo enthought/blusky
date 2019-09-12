@@ -151,3 +151,5 @@ __pycache__
 *.egg-info/
 
 # End of https://www.gitignore.io/api/git,linux,macos,emacs,windows
+
+.vscode

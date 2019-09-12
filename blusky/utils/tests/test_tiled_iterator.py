@@ -44,7 +44,7 @@ class TestTiledIterator(unittest.TestCase):
 
         # no overlap
         tile = next(tile_no_gen)
-        img0 = self.test_data_1[65:2*65, 65:2*65]
+        img0 = self.test_data_1[65 : 2 * 65, 65 : 2 * 65]
         np.array_equal(tile, img0)
 
         # --- overlapping --- #
@@ -68,7 +68,7 @@ class TestTiledIterator(unittest.TestCase):
 
         # 64/(2**2) = 16
         tile = next(tile_no_gen)
-        img0 = self.test_data_1[16:16+65, 16:16+65]
+        img0 = self.test_data_1[16 : 16 + 65, 16 : 16 + 65]
         np.array_equal(tile, img0)
 
     def test_tiled_data_generator(self):
@@ -98,6 +98,6 @@ class TestTiledIterator(unittest.TestCase):
 
         # 64//2**1 = 32
         ofst = 32 * 2
-        img0 = self.test_data_1[ofst:ofst+65, ofst:ofst+65]
+        img0 = self.test_data_1[ofst : ofst + 65, ofst : ofst + 65]
 
         np.allclose(tile, (img0 - mn) / std)

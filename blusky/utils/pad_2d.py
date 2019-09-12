@@ -107,11 +107,11 @@ class Pad2D(HasStrictTraits):
         wavelets - List(wavelets)
             List of wavelets, looks at these finds the largest and
             uses 1/2 it's size as padding.
-        node - Node 
-            A node of the cascade tree used to generate the cascade. 
-            With the same wavelet bank and decimation it generates 
+        node - Node
+            A node of the cascade tree used to generate the cascade.
+            With the same wavelet bank and decimation it generates
             corrects for the successive decimation.
-        
+
         Returns
         -------
         unpadded - Keras Layer

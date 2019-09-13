@@ -18,4 +18,4 @@ build: none
 
 test_script:
   - python -m unittest discover
-  - flake8 blusky/
+  - flake8 --ignore=E203,W503 blusky/

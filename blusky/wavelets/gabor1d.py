@@ -12,6 +12,15 @@ class Gabor2D(HasStrictTraits):
     bandwidth and sample rate. Defining a difference in bandwidth will
     result in an eccentricity of the wavelet.
 
+    The equation of a 1-D Gabor wavelet is a Gaussian modulated by a 
+    complex exponential, described as follows:
+
+    f(x)=e^{-(x-x_{0})^{2}/a^{2}}e^{-ik_{0}(x-x_{0})}} 
+
+    x0 is the center value
+    a is the exponential drop-off
+    k0 rate of modulation
+
     The kernel method takes a "theta" parameter to be used to rotate
     the wavelet in 2D. The shape of the output 2d wavelet
 
@@ -52,11 +61,6 @@ class Gabor2D(HasStrictTraits):
     #: To build a convolutional model, trade-off fidelity with
     # computation cost (small the better).
     shape = Property(Tuple(Int, Int), depends_on=["_sigma"])
-
-    #: (Optional) labels scale of wavelet, makes sense in a filter bank.
-    # Defaults to -1, which is an invalid scale number.  If the scale
-    # is not explicitly set, then scale will be inferred from ordering.
-    scale = Int(-1)
 
     #: measured in "samples"
     _sigma = Property(
@@ -134,7 +138,7 @@ class Gabor2D(HasStrictTraits):
         """
         Output the wavelet in an complex valued array.
 
-        Derivative of the work :gabor_2d.m
+        Derivative of the work :gabor_1d.m - BH: does this exist?
 
         from https://github.com/scatnet/scatnet
 
@@ -148,7 +152,7 @@ class Gabor2D(HasStrictTraits):
         Return
         ------
         wavelet - Array
-           A 2d array containing the wavelet
+           A 1d array containing the wavelet
         """
 
         # convert to radians

@@ -128,7 +128,7 @@ class Morlet2D(HasStrictTraits):
         """
         # tiles are square
         _n = np.int_(self.crop * max(self._sigma))
-        # nicer if odd
+        # nicer if even
         _n += 1 - (_n % 2)
         return (_n, _n)
 
@@ -140,7 +140,7 @@ class Morlet2D(HasStrictTraits):
         )
         return taper
 
-    def kernel(self, theta):
+    def kernel(self, theta, shape=None):
         """
         Output the wavelet in an complex valued array.
 
@@ -164,7 +164,10 @@ class Morlet2D(HasStrictTraits):
         # convert to radians
         _theta = np.deg2rad(theta)
 
-        N, M = self.shape
+        if shape is None:
+            N, M = self.shape
+        else:
+            N, M = shape
 
         #
         X, Y = np.meshgrid(np.arange(M), np.arange(N))

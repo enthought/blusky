@@ -203,7 +203,7 @@ class TiledIterator(HasTraits, Iterator):
         # symmetric about centroid, if tile size is even, adds 1 to the shape
         x = np.array(
             [
-                self._twod_image[ix-nh:ix+nh+1, iy-nw:iy+nw+1]
+                self._twod_image[ix - nh : ix + nh + 1, iy - nw : iy + nw + 1]
                 for ix, iy in self._centroids[index_array]
             ]
         )
@@ -269,6 +269,9 @@ class TiledIterator(HasTraits, Iterator):
 
 
 class TiledDataGenerator(ImageDataGenerator):
+    """ Extend the Keras ImageDataGenerator to change the standardization method.
+    """
+
     def __init__(self, **kwargs):
         ImageDataGenerator.__init__(self, **kwargs)
 

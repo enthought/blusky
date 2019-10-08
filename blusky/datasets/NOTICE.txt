@@ -1,0 +1,4 @@
+The examples data, twod_image_1.npy, twod_image_2.npy
+are inline 500 and 600, taken from the F3 3D seismic volume was obtained
+from the “dGB Open Seismic Repository” and used under the
+Creative Commons (3.0 BY-SA) license.

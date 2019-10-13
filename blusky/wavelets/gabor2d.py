@@ -141,7 +141,7 @@ class Gabor2D(HasStrictTraits):
         )
         return taper
 
-    def kernel(self, theta):
+    def kernel(self, theta, shape=None):
         """
         Output the wavelet in an complex valued array.
 
@@ -165,8 +165,11 @@ class Gabor2D(HasStrictTraits):
         # convert to radians
         _theta = np.deg2rad(theta)
 
-        N, M = self.shape
-
+        if shape is None:
+            N, M = self.shape
+        else:
+            N, M = shape
+            
         #
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 

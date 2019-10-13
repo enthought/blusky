@@ -2,6 +2,7 @@ import re
 
 from keras.layers import Lambda
 from keras.layers.convolutional import ZeroPadding2D
+
 import numpy as np
 import tensorflow as tf
 
@@ -10,6 +11,45 @@ from traits.api import Enum, HasStrictTraits, Instance, Int
 from blusky.transforms.i_decimation_method import IDecimationMethod
 
 
+def pad_to_log2(img, mode='reflect', constant_value=0):
+    """
+    To properly align the transform at multiple scales, we need 
+    the size of the input image to be a power of 2, so, 
+    2, 4, 8, 16, ... etc. 
+    This function applies a padding resize to the nearest (larger) 
+    power of 2. 
+    
+    Parameters
+    ----------
+    img - Array
+        A 2d image in numpy format.
+    mode - Unicode
+        (optional) numpy pad modes,
+    constant_value - Float or Int
+        (optional) if mode 'constant' use this constant value.
+    
+    Returns
+    -------
+    padded image - Array
+        The padded image.
+    """
+    
+    dh = 2**np.ceil(np.log2(img.shape[0])) - img.shape[0]
+    dw = 2**np.ceil(np.log2(img.shape[1])) - img.shape[1]
+
+    _dh1 = int(dh//2)
+    _dh2 = int(_dh1 + dh%2)
+
+    _dw1 = int(dw//2)
+    _dw2 = int(_dw1 + dw%2)
+        
+    
+    if mode == 'constant':
+        return np.pad(img, ((_dh1,_dh2), (_dw1,_dw2)), mode=mode, 
+                      constant_values=constant_value)
+    else:
+        return np.pad(img, ((_dh1,_dh2), (_dw1,_dw2)), mode=mode)
+    
 class ReflectionPadding2D(ZeroPadding2D):
     """ Reimplements Keras' zero-padding layer, adding reflection."""
 
@@ -77,9 +117,9 @@ class Pad2D(HasStrictTraits):
         nx = np.max([wav.shape[0] for wav in wavelets])
         ny = np.max([wav.shape[1] for wav in wavelets])
 
-        # The "valid" convolutions won't see the edges.
-        self._padx = nx // 2 + ny % 2
-        self._pady = ny // 2 + ny % 2
+        # pad by half the size of the wavelet on each end.
+        self._padx = 2**int(np.ceil(np.log2(nx)) - 1)
+        self._pady = 2**int(np.ceil(np.log2(ny)) - 1)
 
     def pad(self, inp):
         """
@@ -127,11 +167,15 @@ class Pad2D(HasStrictTraits):
         name = re.sub("[*,.|_]", "", node.name)
         name += "unpadded"
 
+        # 
         wav, conv = self.decimation.resolve_scales(node)
 
+        # the product gives the resulting decimation at
+        # the output of this layer, use that to also
+        # decimate the padding.
         padx = self._padx // (wav * conv)
         pady = self._pady // (wav * conv)
-
+        
         return Lambda(
             lambda x: x[:, padx:-padx, pady:-pady, :],
             trainable=False,

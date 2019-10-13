@@ -1,3 +1,5 @@
+import numpy as np
+
 from traits.api import HasStrictTraits, Int, provides
 
 from blusky.transforms.i_decimation_method import IDecimationMethod
@@ -48,16 +50,25 @@ class DefaultDecimation(HasStrictTraits):
         _node = node
         while _node.parent is not None:
             _scale = max(_node.scale - self.oversampling, 0)
-            scales.append(_scale)
+            _parent_scale = max(_node.parent.scale - self.oversampling, 0)
+    
+            scales.append(_scale - _parent_scale)
+            
             _node = _node.parent
 
-        if len(scales) > 1:
-            wavelet_factor = scales[1]
+        # cumulative decimation by scale along scattering path
+        cum_deci = np.cumsum(scales[::-1])[::-1]
+
+        # how much to decimate to get to here
+        if len(cum_deci) > 1:
+            # total factors of 2 decimated to upto this layer
+            wavelet_factor = cum_deci[1]
         else:
             wavelet_factor = 0
 
+        # the stride at this layer
         conv_factor = scales[0]
-
+        
         return 2 ** wavelet_factor, 2 ** conv_factor
 
     def decimate_wavelet(self, wav, factor):

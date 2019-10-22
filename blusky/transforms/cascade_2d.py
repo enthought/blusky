@@ -119,6 +119,9 @@ class Cascade2D(HasStrictTraits):
         # precompute decimation
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
+        # we need to normalize by the decimation factor to preserve amplitude
+        deci_norm = (wavelet_stride * conv_stride)**2
+
         # nx/ny is the image shape, num_inp/outp are the number of
         # channels inpit/output.
         nx, ny, num_inp, num_outp = shape
@@ -129,7 +132,7 @@ class Cascade2D(HasStrictTraits):
         weights = np.zeros(shape, dtype=dtype)
 
         for iang, ang in enumerate(self.angles):
-            wav = wavelet2d.kernel(ang)
+            wav = wavelet2d.kernel(ang) * deci_norm
 
             # decimate wavelet
             wav = self.decimation.decimate_wavelet(wav, wavelet_stride)

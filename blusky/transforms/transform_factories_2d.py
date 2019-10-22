@@ -18,12 +18,16 @@ def vanilla_scattering_transform(J,
                                  overlap_log_2 = 0,
                                  order = 2,
                                  oversampling = 1,
-                                 num_angles=9):
-    # exclude 180-degrees
-    angles = tuple(np.linspace(0., 180., num_angles+1)[:-1])
+                                 num_angles=8):
+
+
+    # to reproduce scatnet.m and kymatio definitions (see NOTICE.txt)
+    angles = tuple([90.0 - np.rad2deg(
+                     (int(num_angles-num_angles/2-1)-theta) * np.pi / num_angles) for 
+                            theta in range(num_angles)])
     
     # vanilla filter bank
-    wavelets = [vanilla_morlet_2d(sample_rate, j=i) for i in range(1,J)]
+    wavelets = [vanilla_morlet_2d(sample_rate, j=i) for i in range(0,J)]
     father_wavelet = vanilla_gabor_2d(sample_rate, j=J)
 
     # method of decimation

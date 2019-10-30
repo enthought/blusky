@@ -152,11 +152,13 @@ class Morlet1D(HasStrictTraits):
         wavelet - Array
            A 2d array containing the wavelet
         """
-        
-        if length < 1:
+
+        if shape is None:
             N = self.shape[0]
-        
-        x = np.arange(length)
+        else:
+            N = shape
+
+        x = np.arange(N)
         x -= length//2
 
         # convert to units of cycles per sample
@@ -167,10 +169,6 @@ class Morlet1D(HasStrictTraits):
         K = np.sum(oscilating_part) / np.sum(gaussian_envelope)
         gabc = oscilating_part - K * gaussian_envelope
         
-        if np.abs(gabc).sum() < 1e-7:
-            raise ValueError('Zero division error is very likely to occur, ' +
-                             'aborting computations now.')
-
         normalized_wavelet = gabc / (np.abs(gabc).sum())
 
         if self.taper:

@@ -1,6 +1,11 @@
-   The kernel method of the Gabor2D and Morlet2D object is a derivative work
-   of the
-   gabor_2d.m and morlet_2d_pyramid.m codes, used under the following license:
+The kernel method of the Gabor1D and Morlet1D object is a derivative work	
+of the morlet_filter_bank_1d.m code used under the Apache-2 license (below)
+
+The kernel method of the Gabor2D and Morlet2D object is a derivative work
+of the gabor_2d.m, morlet_2d_noDC.m and morlet_2d_pyramid.m codes,
+used under the Apache-2 license (below)
+   
+   license:
 
    Copyright [2013] [Joakim Andén, Laurent Sifre, Stephane Mallat, Michel Kapoko, Vincent Lostanlen, Edouard Oyallon]
 

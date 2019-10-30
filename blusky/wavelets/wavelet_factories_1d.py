@@ -5,7 +5,7 @@ from blusky.wavelets.morlet_1d import Morlet1D
 
 
 def vanilla_morlet_1d(
-    sample_rate, j=0, sigma=0.8, xi=2.35619, crop=5, taper=False
+    sample_rate, j=0, sigma=1.15, xi=2.35619, crop=5, taper=False
 ):
     """
     This is a lexicon that translates to our definition of the wavelet in
@@ -78,7 +78,7 @@ def vanilla_morlet_1d(
     center_frequency /= 2 ** j
 
     bandwidth = (_bandwidth,)
-
+    
     # Equivalent Morlet wavelet
     wav = Morlet1D(
         sample_rate=sample_rate,
@@ -93,7 +93,7 @@ def vanilla_morlet_1d(
 
 
 def vanilla_gabor_1d(
-    sample_rate, j=0, sigma=0.8, xi=0.0, crop=5, taper=False
+    sample_rate, j=0, sigma=1.15, xi=0.0, crop=5, taper=False
 ):
     """
     This is a lexicon that translates to our definition of the wavelet in

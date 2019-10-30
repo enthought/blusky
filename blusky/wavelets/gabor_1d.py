@@ -130,7 +130,7 @@ class Gabor1D(HasStrictTraits):
         taper = np.outer(np.kaiser(self.shape[0], 3), np.kaiser(self.shape[1], 3))
         return taper
 
-    def kernel(self, length=-1):
+    def kernel(self, shape=None):
         """
         Output the wavelet in an complex valued array.
 
@@ -153,10 +153,12 @@ class Gabor1D(HasStrictTraits):
            A 1d array containing the wavelet
         """
         
-        if length < 1:
-            length = self.shape[0]
+        if shape is None:
+            N = self.shape[0]
+        else:
+            N = shape
 
-        x = np.arange(length)
+        x = np.arange(N)
         x -= length//2
             
         # convert to units of cycles per sample
@@ -165,10 +167,6 @@ class Gabor1D(HasStrictTraits):
         gaussian_envelope = np.exp(-x*x / (2*(self._sigma[0]**2)))
         gabc = gaussian_envelope * np.exp(1j * x * xi)
         
-        if np.abs(gabc).sum() < 1e-7:
-            raise ValueError('Zero division error is very likely to occur, ' +
-                             'aborting computations now.')
-
         normalized_wavelet = gabc / (np.abs(gabc).sum())
         
         return normalized_wavelet

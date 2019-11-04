@@ -130,7 +130,7 @@ class Morlet1D(HasStrictTraits):
         taper = np.kaiser(self.shape[0], 3)
         return taper
 
-    def kernel(self, length=-1):
+    def kernel(self, shape=None):
         """
         Output the wavelet in an complex valued array.
 
@@ -159,7 +159,7 @@ class Morlet1D(HasStrictTraits):
             N = shape
 
         x = np.arange(N)
-        x -= length//2
+        x -= N//2
 
         # convert to units of cycles per sample
         xi = 2 * np.pi * self.center_frequency * self.sample_rate

@@ -156,10 +156,10 @@ class Gabor1D(HasStrictTraits):
         if shape is None:
             N = self.shape[0]
         else:
-            N = shape
+            N = shape[0]
 
         x = np.arange(N)
-        x -= length//2
+        x -= N//2
             
         # convert to units of cycles per sample
         xi = 2 * np.pi * self.center_frequency * self.sample_rate

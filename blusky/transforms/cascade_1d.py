@@ -1,7 +1,7 @@
 import re
 
 import keras.backend as keras_backend
-from keras.layers import DepthwiseConv2D, Lambda, Add
+from keras.layers import Conv1D, Lambda, Add
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
@@ -9,7 +9,8 @@ from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
 from blusky.transforms.cascade_tree import CascadeTree
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
-from blusky.wavelets.i_wavelet_2d import IWavelet1D
+from blusky.wavelets.i_wavelet_1d import IWavelet1D
+
 
 class Cascade1D(HasStrictTraits):
     """

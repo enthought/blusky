@@ -2,13 +2,12 @@ import re
 
 import keras.backend as keras_backend
 from keras.layers import Conv1D
-
 import numpy as np
 
 from traits.api import Float, HasStrictTraits, Instance, Int, Tuple, Property
 
+from blusky.utils.pad_1d import pad_to_log2, Pad1D
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
-
 
 class ApplyFatherWavlet1D(HasStrictTraits):
     """
@@ -76,26 +75,23 @@ class ApplyFatherWavlet1D(HasStrictTraits):
         name = re.sub("[_/].*","",input_layer.name)
         name += "phi"
         
-        _, nw, _ = input_layer.shape
+        _, nh, _ = input_layer.shape
 
         nh = nh.value
 
-        # amount of decimation to here.
-        factor_1 = self.img_size[0]//nh
-
-        #
-        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
+        # how much to decimate the wavelet to required bandwidth
+        wavelet_stride = self.img_size[0]//nh
         
         # need to guarantee this, ideally crop the wavelet to a
         # power of "2"
-        wav = self.wavelet.kernel(0., shape=(self.img_size,)) 
-        # 
-        wav = wav[::wavelet_stride,::wavelet_stride]
+        wav = pad_to_log2(self.wavelet.kernel(shape=(self.img_size[0],)))
+        #         
+        wav = wav[::wavelet_stride]
         
         # needs to be real        
         if np.iscomplexobj(wav):
             wav = wav.real
-
+        
         # define a little helper to intialize the weights.
         def init_weights(shape, dtype=None):
             if dtype is None:
@@ -104,24 +100,24 @@ class ApplyFatherWavlet1D(HasStrictTraits):
             weights = np.zeros(shape, dtype=dtype)
 
             for ichan in range(shape[2]):
-                weights[:, :, ichan, 0] = wav.astype(dtype)
+                weights[:, ichan, 0] = wav.astype(dtype)
 
             return keras_backend.variable(value=weights, dtype=dtype)
 
 
         # use the father wavelet scale here instead of the default:
         conv_stride = (max(2**(-self.overlap_log_2) *
-                           self._tile_size[0]//factor_1, 1),)
+                           self._tile_size[0]//wavelet_stride, 1),)
         conv_stride = (int(conv_stride[0]),)
         
-        conv = Conv1D(
-            name=name,
-            kernel_size=wav.shape,
-            data_format="channels_last",
-            padding="valid",
-            strides=conv_stride,
-            trainable=trainable,
-            kernel_initializer=lambda args: self._init_weights(args)
+        conv = Conv1D(1,
+                      wav.shape,                      
+                      name=name,
+                      data_format="channels_last",
+                      padding="valid",
+                      strides=conv_stride,
+                      trainable=trainable,
+            kernel_initializer=lambda args: init_weights(args)
         )
         
         return conv(input_layer)

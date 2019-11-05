@@ -64,7 +64,9 @@ class TestAlgorithms(unittest.TestCase):
         # vanilla filter bank
         wavelets = [vanilla_morlet_2d(sample_rate, j=i) for i in range(0, J)]
         father_wavelet = vanilla_gabor_2d(sample_rate, j=J)
+        
         print(father_wavelet.kernel(0.0).shape)
+
         # method of decimation
         deci = NoDecimation()  # DefaultDecimation(oversampling=oversampling)
 
@@ -122,7 +124,10 @@ class TestAlgorithms(unittest.TestCase):
 
         phi = father_wavelet.kernel(0.0)
 
-        img_pad = np.pad(img, ((16, 16), (16, 16), (0, 0)), mode="reflect")
+        npad = 32
+        
+        img_pad = np.pad(img, ((npad, npad), (npad, npad), (0, 0)),
+                         mode="reflect")
         # get numpy array of the test input image
         x = img_pad[:, :, 0]
 
@@ -135,36 +140,33 @@ class TestAlgorithms(unittest.TestCase):
         # note that the dimensions for phi are one less than the
         # conv result, so we get a 4x4 result.  Take the first one
         manual_result1 = convolve2d(
-            conv[16:-16, 16:-16], phi.real, mode="valid"
+            conv[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
         manual_result2 = convolve2d(
-            conv2[16:-16, 16:-16], phi.real, mode="valid"
+            conv2[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
         manual_result3 = convolve2d(
-            conv3[16:-16, 16:-16], phi.real, mode="valid"
+            conv3[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
         # get cnn result, note we're using the third angle for this (index 2)
         cnn_result1 = result[0][0, 0, 0, 0]
         cnn_result2 = result[3][0, 0, 0, 1]
         cnn_result3 = result[6][0, 0, 0, 5]
 
-        np.testing.assert_almost_equal(
-            manual_result1,
-            cnn_result1,
-            err_msg="|x * psi_1| * phi does not match with cnn result.",
-        )
+        # use all close to assert relative error:
+        manual = np.array([manual_result1, manual_result2, manual_result3])
+        manual /= manual[0]
+                         
+        cnn_result = np.array([cnn_result1, cnn_result2, cnn_result3])
+        cnn_result /= cnn_result[0]
 
-        np.testing.assert_almost_equal(
-            manual_result2,
-            cnn_result2,
-            err_msg="||x * psi_1| * psi_2| * phi does not match with cnn result.",
+        np.testing.assert_allclose(
+            manual,
+            cnn_result,
+            atol=1E-5,
+            err_msg="first order does not match with cnn result.",
         )
-
-        np.testing.assert_almost_equal(
-            manual_result3,
-            cnn_result3,
-            err_msg="|||x * psi_1| * psi_2| * psi_3| * phi does not match with cnn result.",
-        )
+        
 
     def test_apply_father_wavelet_dirac(self):
         """

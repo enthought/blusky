@@ -215,9 +215,8 @@ class Morlet2D(HasStrictTraits):
         #
         gabc = oscilating_part - K * gaussian_envelope
 
-        normalized_wavelet = (
-            1 / (2 * np.pi * self._sigma[0] * self._sigma[1]) * gabc
-        )
+        #
+        normalized_wavelet = gabc / (2 * np.pi * self._sigma[0] * self._sigma[1])
 
         if self.taper:
             normalized_wavelet *= self._taper()

@@ -111,7 +111,10 @@ class ApplyFatherWavlet2D(HasStrictTraits):
         wavelet_stride = min(factor_1, factor_2)
         # need to guarantee this, ideally crop the wavelet to a
         # power of "2"
-        wav = pad_to_log2(self.wavelet.kernel(0.))
+        wav = self.wavelet.kernel(0.,
+                                  shape=(2**(self.J+2)-1,
+                                         2**(self.J+2)-1))
+        
         # 
         wav = wav[::wavelet_stride,::wavelet_stride]
         
@@ -133,8 +136,10 @@ class ApplyFatherWavlet2D(HasStrictTraits):
 
 
         # use the father wavelet scale here instead of the default:
-        conv_stride = (max(2 ** (-self.overlap_log_2) * self._tile_size[0]//factor_1, 1),
-                       max(2 ** (-self.overlap_log_2) * self._tile_size[1]//factor_2, 1))
+        conv_stride = (max(2 ** (-self.overlap_log_2) *
+                           self._tile_size[0]//factor_1, 1),
+                       max(2 ** (-self.overlap_log_2) *
+                           self._tile_size[1]//factor_2, 1))
         conv_stride = (int(conv_stride[0]), int(conv_stride[0]))
         
         conv = DepthwiseConv2D(

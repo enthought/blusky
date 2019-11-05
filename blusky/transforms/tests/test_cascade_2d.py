@@ -15,11 +15,7 @@ import blusky.datasets as datasets
 class TestAlgorithms(unittest.TestCase):
     def setUp(self):
         # define the test cascade. use
-        self.cascade = Cascade2D(
-            "none",
-            0,
-            angles=(0.0, 45, 90)
-        )
+        self.cascade = Cascade2D("none", 0, angles=(0.0, 45, 90))
 
     def test_cascade_2d_results(self):
         """

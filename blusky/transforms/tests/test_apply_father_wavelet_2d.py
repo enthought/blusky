@@ -22,10 +22,6 @@ from blusky.transforms.cascade_tree import CascadeTree
 
 class TestAlgorithms(unittest.TestCase):
     def setUp(self):
-        # define the test cascade. use
-        self.cascade = Cascade2D("none", 0, angles=(0.0, 45, 90))
-
-    def test_apply_father_wavelet_results(self):
         """
         Create a 2d cascade with three wavelets and order 3, and compare
         results with manual convolution.
@@ -43,70 +39,32 @@ class TestAlgorithms(unittest.TestCase):
         extracted_image = original_image[0:32, 0:32]
         extracted_shape = extracted_image.shape
 
-        img = np.expand_dims(extracted_image, axis=-1)
+        self.img = np.expand_dims(extracted_image, axis=-1)
 
         # Don't make this too huge for brevity.
-        J = 3
+        self.J = 3
         # 0 = no overlap etc.
-        overlap_log_2 = 0
+        self.overlap_log_2 = 0
         # apply to all available orders
-        order = 3
-        # Should be one or more to avoid aliasing, if you want overlapping tiles,
-        # this can increase too.
-        oversampling = 0
+        self.order = 3
+        # Should be one or more to avoid aliasing, if you want overlapping
+        # tiles this can increase too.
+        self.oversampling = 0
 
-        angles = (0.0, 45.0, 90.0)
-
+        self.num_angles = 3
+        self.angles = tuple([90.0 - np.rad2deg(
+                        (int(self.num_angles-self.num_angles/2-1)-
+                          theta) * np.pi / self.num_angles) for 
+                              theta in range(self.num_angles)])
+        
         # details of the input data
-        img_size = img.shape
-        sample_rate = 0.004 * 3
+        img_size = self.img.shape
+        self.sample_rate = 0.004 * 3
 
         # vanilla filter bank
-        wavelets = [vanilla_morlet_2d(sample_rate, j=i) for i in range(0, J)]
-        father_wavelet = vanilla_gabor_2d(sample_rate, j=J)
-        
-        print(father_wavelet.kernel(0.0).shape)
-
-        # method of decimation
-        deci = NoDecimation()  # DefaultDecimation(oversampling=oversampling)
-
-        # input
-        inp = Input(shape=img.shape)
-
-        # valid padding
-        cascade2d = Cascade2D("none", 0, decimation=deci, angles=angles)
-
-        # Pad the input
-        pad_2d = Pad2D(wavelets, decimation=deci)
-        padded = pad_2d.pad(inp)
-
-        # Apply cascade with successive decimation
-        cascade_tree = CascadeTree(padded, order=order)
-        cascade_tree.generate(wavelets, cascade2d._convolve)
-        convs = cascade_tree.get_convolutions()
-
-        # Create layers to remove padding
-        cascade_tree = CascadeTree(padded, order=order)
-        cascade_tree.generate(wavelets, pad_2d._unpad_same)
-        unpad = cascade_tree.get_convolutions()
-
-        # Remove the padding
-        unpadded_convs = [i[1](i[0]) for i in zip(convs, unpad)]
-
-        # Complete the scattering transform with the father wavelet
-        apply_conv = ApplyFatherWavlet2D(
-            J=J,
-            overlap_log_2=overlap_log_2,
-            img_size=img.shape,
-            sample_rate=sample_rate,
-            wavelet=father_wavelet,
-        )
-
-        sca_transf = apply_conv.convolve(unpadded_convs)
-
-        model = Model(inputs=inp, outputs=sca_transf)
-
-        result = model.predict(np.expand_dims(img, axis=0))
+        wavelets = [vanilla_morlet_2d(self.sample_rate, j=i)
+                        for i in range(0, self.J)]
+        father_wavelet = vanilla_gabor_2d(self.sample_rate, j=self.J)
 
         # extract the kernels of each of the wavelets for manual convolution
         # we'll test using three different angles that we used to create the
@@ -118,15 +76,17 @@ class TestAlgorithms(unittest.TestCase):
         # extract the kernels of each of the wavelets for manual convolution
         # we'll test using three different angles that we used to create the
         # transform above.
-        wav1_k = wav1.kernel(0.0)
-        wav2_k = wav2.kernel(45.0)
-        wav3_k = wav3.kernel(90.0)
+        wav1_k = wav1.kernel(self.angles[0])
+        wav2_k = wav2.kernel(self.angles[1])
+        wav3_k = wav3.kernel(self.angles[2])
 
         phi = father_wavelet.kernel(0.0)
 
         npad = 31
-        
-        img_pad = np.pad(img, ((npad, npad), (npad, npad), (0, 0)),
+        img_pad = np.pad(self.img,
+                         ((npad, npad),
+                          (npad, npad),
+                          (0, 0)),
                          mode="reflect")
         # get numpy array of the test input image
         x = img_pad[:, :, 0]
@@ -139,22 +99,71 @@ class TestAlgorithms(unittest.TestCase):
         # unpad the original image, and convolve with the phi
         # note that the dimensions for phi are one less than the
         # conv result, so we get a 4x4 result.  Take the first one
-        manual_result1 = convolve2d(
+        self.manual_result1 = convolve2d(
             conv[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
-        manual_result2 = convolve2d(
+        self.manual_result2 = convolve2d(
             conv2[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
-        manual_result3 = convolve2d(
+        self.manual_result3 = convolve2d(
             conv3[npad:-npad, npad:-npad], phi.real, mode="valid"
         )[0, 0]
+
+        
+    def test_apply_father_wavelet_results(self):
+        # Complete the scattering transform with the father wavelet
+        father_wavelet = vanilla_gabor_2d(self.sample_rate, j=self.J)
+        wavelets = [vanilla_morlet_2d(self.sample_rate, j=i) for i in
+                            range(0, self.J)]
+        
+        apply_conv = ApplyFatherWavlet2D(
+            J=self.J,
+            overlap_log_2=self.overlap_log_2,
+            img_size=self.img.shape,
+            sample_rate=self.sample_rate,
+            wavelet=father_wavelet,
+        )
+
+        deci = NoDecimation()  # DefaultDecimation(oversampling=oversampling)
+
+        # input
+        inp = Input(shape=self.img.shape)
+
+        # valid padding
+        cascade2d = Cascade2D("none", 0, decimation=deci, angles=self.angles)
+
+        # Pad the input
+        pad_2d = Pad2D(wavelets, decimation=deci)
+        padded = pad_2d.pad(inp)
+
+        # Apply cascade with successive decimation
+        cascade_tree = CascadeTree(padded, order=self.order)
+        cascade_tree.generate(wavelets, cascade2d._convolve)
+        convs = cascade_tree.get_convolutions()
+
+        # Create layers to remove padding
+        cascade_tree = CascadeTree(padded, order=self.order)
+        cascade_tree.generate(wavelets, pad_2d._unpad_same)
+        unpad = cascade_tree.get_convolutions()
+
+        # Remove the padding
+        unpadded_convs = [i[1](i[0]) for i in zip(convs, unpad)]
+        
+        sca_transf = apply_conv.convolve(unpadded_convs)
+
+        model = Model(inputs=inp, outputs=sca_transf)
+
+        result = model.predict(np.expand_dims(self.img, axis=0))
+        
         # get cnn result, note we're using the third angle for this (index 2)
         cnn_result1 = result[0][0, 0, 0, 0]
         cnn_result2 = result[3][0, 0, 0, 1]
         cnn_result3 = result[6][0, 0, 0, 5]
 
         # use all close to assert relative error:
-        manual = np.array([manual_result1, manual_result2, manual_result3])
+        manual = np.array([self.manual_result1,
+                           self.manual_result2,
+                           self.manual_result3])
         manual[1:] /= manual[0]
                          
         cnn_result = np.array([cnn_result1, cnn_result2, cnn_result3])
@@ -163,11 +172,37 @@ class TestAlgorithms(unittest.TestCase):
         np.testing.assert_allclose(
             manual,
             cnn_result,
-            atol=1E-4,
+            atol=1E-3,
+            err_msg="first order does not match with cnn result.",
+        )
+
+        
+    def teat_vanilla_wavelet(self):
+        N, M = self.img.shape
+        model = vanilla_scattering_transform(self.J,
+                                             overlap_log_2=self.overlap_log_2,
+                                             img_size=self.img.shape,
+                                             sample_rate=self.sample_rate,
+                                             num_angles=self.num_angles,
+                                             order=self.order)
+
+        # use all close to assert relative error:
+        manual = np.array([self.manual_result1,
+                           self.manual_result2,
+                           self.manual_result3])
+        manual[1:] /= manual[0]
+                         
+        cnn_result = np.array([cnn_result1, cnn_result2, cnn_result3])
+        cnn_result[1:] /= cnn_result[0]
+
+        np.testing.assert_allclose(
+            manual,
+            cnn_result,
+            atol=1E-3,
             err_msg="first order does not match with cnn result.",
         )
         
-
+        
     def test_apply_father_wavelet_dirac(self):
         """
         Test that a Dirac function input returns the original wavelet.

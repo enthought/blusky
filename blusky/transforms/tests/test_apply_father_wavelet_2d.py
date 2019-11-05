@@ -124,7 +124,7 @@ class TestAlgorithms(unittest.TestCase):
 
         phi = father_wavelet.kernel(0.0)
 
-        npad = 32
+        npad = 31
         
         img_pad = np.pad(img, ((npad, npad), (npad, npad), (0, 0)),
                          mode="reflect")
@@ -155,15 +155,15 @@ class TestAlgorithms(unittest.TestCase):
 
         # use all close to assert relative error:
         manual = np.array([manual_result1, manual_result2, manual_result3])
-        manual /= manual[0]
+        manual[1:] /= manual[0]
                          
         cnn_result = np.array([cnn_result1, cnn_result2, cnn_result3])
-        cnn_result /= cnn_result[0]
+        cnn_result[1:] /= cnn_result[0]
 
         np.testing.assert_allclose(
             manual,
             cnn_result,
-            atol=1E-5,
+            atol=1E-4,
             err_msg="first order does not match with cnn result.",
         )
         

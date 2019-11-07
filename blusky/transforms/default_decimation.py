@@ -51,9 +51,9 @@ class DefaultDecimation(HasStrictTraits):
         while _node.parent is not None:
             _scale = max(_node.scale - self.oversampling, 0)
             _parent_scale = max(_node.parent.scale - self.oversampling, 0)
-    
+
             scales.append(_scale - _parent_scale)
-            
+
             _node = _node.parent
 
         # cumulative decimation by scale along scattering path
@@ -68,7 +68,7 @@ class DefaultDecimation(HasStrictTraits):
 
         # the stride at this layer
         conv_factor = scales[0]
-        
+
         return 2 ** wavelet_factor, 2 ** conv_factor
 
     def decimate_wavelet(self, wav, factor):

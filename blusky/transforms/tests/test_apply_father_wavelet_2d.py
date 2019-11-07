@@ -7,13 +7,16 @@ from scipy.signal import convolve2d
 import unittest
 
 from blusky.transforms.cascade_2d import Cascade2D
-from blusky.wavelets.wavelet_factories_2d import (vanilla_morlet_2d,
-                                                  vanilla_gabor_2d)
+from blusky.wavelets.wavelet_factories_2d import (
+    vanilla_morlet_2d,
+    vanilla_gabor_2d,
+)
 from blusky.utils.pad_2d import Pad2D
 from blusky.transforms.apply_father_wavelet_2d import ApplyFatherWavlet2D
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.transform_factories_2d import (
-    vanilla_scattering_transform)
+    vanilla_scattering_transform,
+)
 
 import blusky.datasets as datasets
 from blusky.transforms.cascade_tree import CascadeTree
@@ -25,8 +28,9 @@ class TestAlgorithms(unittest.TestCase):
         Create a 2d cascade with three wavelets and order 3, and compare
         results with manual convolution.
         """
-        test_file_1 = path.join(path.dirname(datasets.__file__),
-                                "twod_image_1.npy")
+        test_file_1 = path.join(
+            path.dirname(datasets.__file__), "twod_image_1.npy"
+        )
 
         original_image = np.load(test_file_1)
 
@@ -64,8 +68,9 @@ class TestAlgorithms(unittest.TestCase):
         self.sample_rate = 0.004 * 3
 
         # vanilla filter bank
-        wavelets = [vanilla_morlet_2d(self.sample_rate, j=i) for i in
-                    range(0, self.J)]
+        wavelets = [
+            vanilla_morlet_2d(self.sample_rate, j=i) for i in range(0, self.J)
+        ]
         father_wavelet = vanilla_gabor_2d(self.sample_rate, j=self.J)
 
         # extract the kernels of each of the wavelets for manual convolution
@@ -85,8 +90,9 @@ class TestAlgorithms(unittest.TestCase):
         phi = father_wavelet.kernel(0.0)
 
         npad = 31
-        img_pad = np.pad(self.img, ((npad, npad), (npad, npad), (0, 0)),
-                         mode="reflect")
+        img_pad = np.pad(
+            self.img, ((npad, npad), (npad, npad), (0, 0)), mode="reflect"
+        )
         # get numpy array of the test input image
         x = img_pad[:, :, 0]
 
@@ -111,8 +117,9 @@ class TestAlgorithms(unittest.TestCase):
     def test_apply_father_wavelet_results(self):
         # Complete the scattering transform with the father wavelet
         father_wavelet = vanilla_gabor_2d(self.sample_rate, j=self.J)
-        wavelets = [vanilla_morlet_2d(self.sample_rate, j=i) for i in
-                    range(0, self.J)]
+        wavelets = [
+            vanilla_morlet_2d(self.sample_rate, j=i) for i in range(0, self.J)
+        ]
 
         apply_conv = ApplyFatherWavlet2D(
             J=self.J,
@@ -176,7 +183,7 @@ class TestAlgorithms(unittest.TestCase):
 
     def test_vanilla_wavelet(self):
         N, M, _ = self.img.shape
-        
+
         model, _ = vanilla_scattering_transform(
             self.J,
             overlap_log_2=self.overlap_log_2,
@@ -185,13 +192,13 @@ class TestAlgorithms(unittest.TestCase):
             num_angles=self.num_angles,
             order=self.order,
         )
-        
+
         result = model.predict(np.expand_dims(self.img, axis=0))
 
         cnn_result1 = result[0][0, 0, 0, 0]
         cnn_result2 = result[3][0, 0, 0, 1]
         cnn_result3 = result[6][0, 0, 0, 5]
-        
+
         # use all close to assert relative error:
         manual = np.array(
             [self.manual_result1, self.manual_result2, self.manual_result3]

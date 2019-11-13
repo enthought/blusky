@@ -49,7 +49,8 @@ setup(
                       "flake8",
                       "pillow",
                       "tensorflow<=1.14",
-                      "keras<=2.2.4-8"
+                      "keras<=2.2.4-8",
+                      "matplotlib"
                       ],  
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"

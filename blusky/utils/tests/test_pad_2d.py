@@ -66,7 +66,7 @@ class TestPad2D(unittest.TestCase):
         unpadded_convs = [i[1](i[0]) for i in zip(convs, unpadded)]
 
         # The reason the shape is changing is because its being decimated.
-        
+
         self.assertTrue(unpadded_convs[0].shape[1] == 99)
         self.assertTrue(unpadded_convs[0].shape[2] == 99)
 

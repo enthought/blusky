@@ -169,7 +169,7 @@ class Gabor2D(HasStrictTraits):
             N, M = self.shape
         else:
             N, M = shape
-            
+
         #
         X, Y = np.meshgrid(np.arange(M), np.arange(N))
 

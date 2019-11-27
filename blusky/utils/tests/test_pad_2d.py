@@ -65,6 +65,8 @@ class TestPad2D(unittest.TestCase):
 
         unpadded_convs = [i[1](i[0]) for i in zip(convs, unpadded)]
 
+        # The reason the shape is changing is because its being decimated.
+
         self.assertTrue(unpadded_convs[0].shape[1] == 99)
         self.assertTrue(unpadded_convs[0].shape[2] == 99)
 
@@ -80,8 +82,8 @@ class TestPad2D(unittest.TestCase):
         self.assertTrue(unpadded_convs[4].shape[1] == 25)
         self.assertTrue(unpadded_convs[4].shape[2] == 25)
 
-        self.assertTrue(unpadded_convs[5].shape[1] == 13)
-        self.assertTrue(unpadded_convs[5].shape[2] == 13)
+        self.assertTrue(unpadded_convs[5].shape[1] == 25)
+        self.assertTrue(unpadded_convs[5].shape[2] == 25)
 
     def test_unpad_2(self):
         from blusky.transforms.cascade_tree import CascadeTree

@@ -6,6 +6,7 @@ import numpy as np
 
 from traits.api import Float, HasStrictTraits, Instance, Int, Tuple, Property
 
+from blusky.utils.pad_1d import pad_to_log2
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
 

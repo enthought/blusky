@@ -1,6 +1,14 @@
 import numpy as np
 
-from traits.api import Bool, Float, HasStrictTraits, Int, Property, provides, Tuple
+from traits.api import (
+    Bool,
+    Float,
+    HasStrictTraits,
+    Int,
+    Property,
+    provides,
+    Tuple,
+)
 
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
@@ -12,7 +20,7 @@ class Morlet1D(HasStrictTraits):
     bandwidth and sample rate. Defining a difference in bandwidth will
     result in an eccentricity of the wavelet.
 
-    The kernel method generates the wavelet, if you want to define a 
+    The kernel method generates the wavelet, if you want to define a
     specific length for the wavelet use the length optional argument.
     Otherwise it will use defaults determined by "crop".
 
@@ -34,7 +42,7 @@ class Morlet1D(HasStrictTraits):
     #: bandwidth measured as full-width a half maximum (-3db) of the
     # gaussian envelope in the frequency domain.
     # The two numbers define fwhm in orthogonal directions.
-    bandwidth = Tuple(Float,)
+    bandwidth = Tuple(Float)
 
     #: The center frequency along the principle axis
     center_frequency = Float
@@ -53,14 +61,15 @@ class Morlet1D(HasStrictTraits):
 
     #: To build a convolutional model, trade-off fidelity with
     # computation cost (small the better).
-    shape = Property(Tuple(Int,), depends_on=["_sigma"])
+    shape = Property(Tuple(Int), depends_on=["_sigma"])
 
     #: (Optional) labels scale of wavelet, makes sense in a filter bank.
     scale = Int(-1)
-    
+
     #: measured in "samples"
     _sigma = Property(
-        Tuple(Float,), depends_on=["bandwidth", "center_frequency", "sample_rate"]
+        Tuple(Float),
+        depends_on=["bandwidth", "center_frequency", "sample_rate"],
     )
 
     def __init__(self, center_frequency, bandwidth, sample_rate, **traits):
@@ -134,7 +143,7 @@ class Morlet1D(HasStrictTraits):
         """
         Output the wavelet in an complex valued array.
 
-        Derivative of the work: morlet_2d_pyramid.m, we applied the 
+        Derivative of the work: morlet_2d_pyramid.m, we applied the
         same idea to 1-d for consistency.
 
         from https://github.com/scatnet/scatnet
@@ -159,19 +168,19 @@ class Morlet1D(HasStrictTraits):
             N = shape
 
         x = np.arange(N)
-        x -= N//2
+        x -= N // 2
 
         # convert to units of cycles per sample
         xi = 2 * np.pi * self.center_frequency * self.sample_rate
-        
-        gaussian_envelope = np.exp(-x*x / (2*(self._sigma[0]**2)))
+
+        gaussian_envelope = np.exp(-x * x / (2 * (self._sigma[0] ** 2)))
         oscilating_part = gaussian_envelope * np.exp(1j * x * xi)
         K = np.sum(oscilating_part) / np.sum(gaussian_envelope)
         gabc = oscilating_part - K * gaussian_envelope
-        
+
         normalized_wavelet = gabc / (np.abs(gabc).sum())
 
         if self.taper:
             normalized_wavelet *= self._taper()
-        
+
         return normalized_wavelet

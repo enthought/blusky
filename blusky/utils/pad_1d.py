@@ -11,14 +11,14 @@ from traits.api import Enum, HasStrictTraits, Instance, Int
 from blusky.transforms.i_decimation_method import IDecimationMethod
 
 
-def pad_to_log2(img, mode='reflect', constant_value=0):
+def pad_to_log2(img, mode="reflect", constant_value=0):
     """
-    To properly align the transform at multiple scales, we need 
-    the size of the input image to be a power of 2, so, 
-    2, 4, 8, 16, ... etc. 
-    This function applies a padding resize to the nearest (larger) 
-    power of 2. 
-    
+    To properly align the transform at multiple scales, we need
+    the size of the input image to be a power of 2, so,
+    2, 4, 8, 16, ... etc.
+    This function applies a padding resize to the nearest (larger)
+    power of 2.
+
     Parameters
     ----------
     img - Array
@@ -27,23 +27,25 @@ def pad_to_log2(img, mode='reflect', constant_value=0):
         (optional) numpy pad modes,
     constant_value - Float or Int
         (optional) if mode 'constant' use this constant value.
-    
+
     Returns
     -------
     padded image - Array
         The padded image.
     """
-    
-    dh = 2**np.ceil(np.log2(img.shape[0])) - img.shape[0]
-    _dh1 = int(dh//2)
-    _dh2 = int(_dh1 + dh%2)
-    
-    if mode == 'constant':
-        return np.pad(img, (_dh1,_dh2), mode=mode, 
-                      constant_values=constant_value)
+
+    dh = 2 ** np.ceil(np.log2(img.shape[0])) - img.shape[0]
+    _dh1 = int(dh // 2)
+    _dh2 = int(_dh1 + dh % 2)
+
+    if mode == "constant":
+        return np.pad(
+            img, (_dh1, _dh2), mode=mode, constant_values=constant_value
+        )
     else:
-        return np.pad(img, (_dh1,_dh2), mode=mode)
-    
+        return np.pad(img, (_dh1, _dh2), mode=mode)
+
+
 class ReflectionPadding1D(ZeroPadding1D):
     """ Reimplements Keras' zero-padding layer, adding reflection."""
 
@@ -110,7 +112,7 @@ class Pad1D(HasStrictTraits):
         nx = np.max([wav.shape[0] for wav in wavelets])
 
         # pad by half the size of the wavelet on each end.
-        self._padx = 2**int(np.ceil(np.log2(nx)) - 1)
+        self._padx = 2 ** int(np.ceil(np.log2(nx)) - 1)
 
     def pad(self, inp):
         """
@@ -159,18 +161,16 @@ class Pad1D(HasStrictTraits):
         name = re.sub("[*,.|_]", "", node.name)
         name += "unpadded"
 
-        # 
+        #
         wav, conv = self.decimation.resolve_scales(node)
 
         # the product gives the resulting decimation at
         # the output of this layer, use that to also
         # decimate the padding.
         padx = self._padx // (wav * conv)
-        
+
         return Lambda(
-            lambda x: x[:, padx:-padx, :],
-            trainable=False,
-            name=name,
+            lambda x: x[:, padx:-padx, :], trainable=False, name=name
         )
 
     def _unpad_valid(self, inp, wv, node):

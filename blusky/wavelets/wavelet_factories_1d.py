@@ -78,7 +78,7 @@ def vanilla_morlet_1d(
     center_frequency /= 2 ** j
 
     bandwidth = (_bandwidth,)
-    
+
     # Equivalent Morlet wavelet
     wav = Morlet1D(
         sample_rate=sample_rate,

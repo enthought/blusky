@@ -4,12 +4,10 @@ import keras.backend as keras_backend
 from keras.layers import Conv1D, Lambda, Add
 import numpy as np
 
-from traits.api import Enum, HasStrictTraits, Int, Instance, List, Tuple
+from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
 
-from blusky.transforms.cascade_tree import CascadeTree
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
-from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
 
 class Cascade1D(HasStrictTraits):
@@ -71,7 +69,7 @@ class Cascade1D(HasStrictTraits):
         self, shape, node=None, dtype=None, wavelet1d=None, real_part=True
     ):
         """
-        Create an initializer for Conv1D layers. 
+        Create an initializer for Conv1D layers.
 
         Parameters
         ----------
@@ -115,10 +113,10 @@ class Cascade1D(HasStrictTraits):
 
     def _convolve_and_abs(self, wavelet, inp, node, trainable=False):
         """
-        Implement the operations for |inp*psi| in 1-D. Assumes a single 
-        input channel. If you have multiple input channels you want 
+        Implement the operations for |inp*psi| in 1-D. Assumes a single
+        input channel. If you have multiple input channels you want
         the convolution to apply to, then to each independently.
-        
+
         Parameters
         ----------
         wavelet - IWavelet1D
@@ -137,7 +135,7 @@ class Cascade1D(HasStrictTraits):
         Returns
         -------
         returns - Keras Layer
-            The result of the convolution and abs function.        
+            The result of the convolution and abs function.
         """
 
         # create a valid layer name
@@ -147,9 +145,7 @@ class Cascade1D(HasStrictTraits):
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
         # after decimation
-        wavelet_shape = (
-            wavelet.shape[0] // wavelet_stride,
-        )
+        wavelet_shape = (wavelet.shape[0] // wavelet_stride,)
 
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
         add = Add(trainable=False)
@@ -161,7 +157,8 @@ class Cascade1D(HasStrictTraits):
         )
         self._endpoint_counter += 1
 
-        real_part = Conv1D(1,
+        real_part = Conv1D(
+            1,
             kernel_size=wavelet_shape,
             data_format="channels_last",
             padding=self._padding,
@@ -173,7 +170,8 @@ class Cascade1D(HasStrictTraits):
         )(inp)
         real_part = square(real_part)
 
-        imag_part = Conv1D(1,
+        imag_part = Conv1D(
+            1,
             kernel_size=wavelet_shape,
             data_format="channels_last",
             padding=self._padding,

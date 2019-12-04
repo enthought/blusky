@@ -12,7 +12,7 @@ import blusky.datasets as datasets
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.cascade_1d import Cascade1D
 from blusky.transforms.cascade_tree import CascadeTree
-from blusky.utils.pad_1d import pad_to_log2, Pad1D
+from blusky.utils.pad_1d import Pad1D
 from blusky.wavelets.wavelet_factories_1d import (
     vanilla_gabor_1d,
     vanilla_morlet_1d,

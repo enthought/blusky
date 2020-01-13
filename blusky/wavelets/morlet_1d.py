@@ -13,26 +13,10 @@ from traits.api import (
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
 
+
 @provides(IWavelet1D)
 class Morlet1D(HasStrictTraits):
     """
-    Construct a 1-D Morlet wavelet using parameters of center frequency,
-    bandwidth and sample rate. Defining a difference in bandwidth will
-    result in an eccentricity of the wavelet.
-
-    The kernel method generates the wavelet, if you want to define a
-    specific length for the wavelet use the length optional argument.
-    Otherwise it will use defaults determined by "crop".
-
-    Optional keyword argument:
-
-    crop - Float
-       Specifies a multiple of the envelope to crop the image for output.
-
-    taper - Bool
-       If true, applies a hanning window to the image on output. This maybe
-       useful for reducing edge effects in subsequent convolutions.
-
     """
 
     #: If the wavelet with eccentricity, the orientation of
@@ -183,4 +167,5 @@ class Morlet1D(HasStrictTraits):
         if self.taper:
             normalized_wavelet *= self._taper()
 
-        return normalized_wavelet
+        # 1.3333 aligns the amplitude with scatnet impl.
+        return normalized_wavelet * 1.3333

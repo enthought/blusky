@@ -1,7 +1,7 @@
 import re
 
 import keras.backend as keras_backend
-from keras.layers import Conv1D, Lambda, Add
+from keras.layers import Conv1D, Lambda, Add, SeparableConv1D
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
@@ -95,9 +95,15 @@ class Cascade1D(HasStrictTraits):
         # precompute decimation
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
+        # we need to normalize by the decimation factor to preserve amplitude
+        deci_norm = (wavelet_stride * conv_stride)**2
+        
         weights = np.zeros(shape, dtype=dtype)
 
-        wav = wavelet1d.kernel()
+        wav = wavelet1d.kernel() * deci_norm
+
+        # decimate wavelet
+        wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
 
         # keras does 32-bit real number convolutions
         if real_part:
@@ -143,7 +149,7 @@ class Cascade1D(HasStrictTraits):
 
         #
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
-
+        
         # after decimation
         wavelet_shape = (wavelet.shape[0] // wavelet_stride,)
 

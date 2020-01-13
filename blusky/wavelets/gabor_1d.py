@@ -167,7 +167,10 @@ class Gabor1D(HasStrictTraits):
         if shape is None:
             N = self.shape[0]
         else:
-            N = shape[0]
+            if isinstance(shape, int):
+                N = shape
+            else:
+                N = shape[0]
 
         x = np.arange(N)
         x -= N // 2

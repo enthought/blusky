@@ -81,7 +81,8 @@ class DefaultDecimation(HasStrictTraits):
         if factor < 2:
             return wav
         else:
-            return wav[::factor, ::factor]
+            # applies stride to each dimension 1d, 2d, ...
+            return wav[::factor]
 
     def decimate_convolution(self, inp, factor):
         msg = "Just use the conv_factor as the stride in the Conv layer."

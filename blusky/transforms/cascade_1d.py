@@ -96,7 +96,7 @@ class Cascade1D(HasStrictTraits):
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
         # we need to normalize by the decimation factor to preserve amplitude
-        deci_norm = (wavelet_stride * conv_stride)**2
+        deci_norm = (wavelet_stride * conv_stride)
         
         weights = np.zeros(shape, dtype=dtype)
 
@@ -166,7 +166,8 @@ class Cascade1D(HasStrictTraits):
         # ensures proper alignment of subsequent convolutions
         if self._padding == "valid":
             _valid_align = int(wavelet_shape[0]//2)
-            inp = ReflectionPadding1D(_valid_align)(inp)
+            inp = ReflectionPadding1D((_valid_align,
+                                       _valid_align-1))(inp)
         
         
         real_part = Conv1D(

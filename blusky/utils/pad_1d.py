@@ -185,15 +185,14 @@ class Pad1D(HasStrictTraits):
         # the output of this layer, use that to also
         # decimate the padding.
         _wav_on_two = wv.shape[0]//2
-        
-        #padx = (self._padx - _wav_on_two) // (wav * conv) 
+
         padx = self._padx // (wav * conv)
         
         if padx > 0:
             return Lambda(
-                lambda x: x[:, padx:-padx-1, :], trainable=False, name=name
+                lambda x: x[:, padx:-padx, :], trainable=False, name=name
             )
         else:
             return Lambda(
-                lambda x: x[:,:-1,:], trainable=False, name=name
+                lambda x: x[:,:,:], trainable=False, name=name
             )

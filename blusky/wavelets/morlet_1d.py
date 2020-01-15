@@ -45,7 +45,7 @@ class Morlet1D(HasStrictTraits):
 
     #: To build a convolutional model, trade-off fidelity with
     # computation cost (small the better).
-    shape = Property(Tuple(Int), depends_on=["_sigma"])
+    shape = Tuple(Int)
 
     #: (Optional) labels scale of wavelet, makes sense in a filter bank.
     scale = Int(-1)
@@ -106,15 +106,14 @@ class Morlet1D(HasStrictTraits):
 
         return tuple([2.355 / to_ang(f) for f in self.bandwidth])
 
-    def _get_shape(self):
+    def _shape_default(self):
         """
         Define a square large enough to hold the wavelet in
         any orientation.
         """
         # tiles are square
         _n = np.int_(self.crop * max(self._sigma))
-        # nicer if odd
-        _n += 1 - (_n % 2)
+        
         return (_n,)
 
     def _taper(self):

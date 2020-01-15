@@ -8,7 +8,7 @@ from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
 
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
-
+from blusky.utils.pad_1d import ReflectionPadding1D
 
 class Cascade1D(HasStrictTraits):
     """
@@ -163,6 +163,12 @@ class Cascade1D(HasStrictTraits):
         )
         self._endpoint_counter += 1
 
+        # ensures proper alignment of subsequent convolutions
+        if self._padding == "valid":
+            _valid_align = int(wavelet_shape[0]//2)
+            inp = ReflectionPadding1D(_valid_align)(inp)
+        
+        
         real_part = Conv1D(
             1,
             kernel_size=wavelet_shape,

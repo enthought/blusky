@@ -107,13 +107,12 @@ class Pad1D(HasStrictTraits):
             and we need to track that to know how to unpad properly.
         """
         super().__init__(**traits)
-
+        
         # pad to the max dimension of the wavelets
         nx = np.max([wav.shape[0] for wav in wavelets])
 
-        # pad by half the size of the wavelet on each end.
-        self._padx = 2 ** int(np.ceil(np.log2(nx)) - 1)
-
+        self._padx = int(np.ceil(nx/2.))
+        
     def pad(self, inp):
         """
         Parameters
@@ -129,7 +128,6 @@ class Pad1D(HasStrictTraits):
         padded - Keras Layer
             Returns padded layer.
         """
-
         return ReflectionPadding1D(self._padx)(inp)
 
     def unpad(self, inp, wv, node):
@@ -151,13 +149,14 @@ class Pad1D(HasStrictTraits):
         unpadded - Keras Layer
             Returns a layer to unpadded.
         """
-        if self.conv_padding == "same":
+        
+        if self.conv_padding == "same":            
             return self._unpad_same(inp, wv, node)
-        else:
+        else:            
             return self._unpad_valid(inp, wv, node)
 
     def _unpad_same(self, inp, wv, node):
-        """"""
+        """ """
         name = re.sub("[*,.|_]", "", node.name)
         name += "unpadded"
 
@@ -172,6 +171,29 @@ class Pad1D(HasStrictTraits):
         return Lambda(
             lambda x: x[:, padx:-padx, :], trainable=False, name=name
         )
-
+ 
+            
     def _unpad_valid(self, inp, wv, node):
-        raise NotImplementedError()
+        """"""
+        name = re.sub("[*,.|_]", "", node.name)
+        name += "unpadded"
+
+        #
+        wav, conv = self.decimation.resolve_scales(node)
+
+        # the product gives the resulting decimation at
+        # the output of this layer, use that to also
+        # decimate the padding.
+        _wav_on_two = wv.shape[0]//2
+        
+        #padx = (self._padx - _wav_on_two) // (wav * conv) 
+        padx = self._padx // (wav * conv)
+        
+        if padx > 0:
+            return Lambda(
+                lambda x: x[:, padx:-padx-1, :], trainable=False, name=name
+            )
+        else:
+            return Lambda(
+                lambda x: x[:,:-1,:], trainable=False, name=name
+            )

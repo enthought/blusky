@@ -1,0 +1,21 @@
+This data has been created using the scatnet MATLAB software;
+
+https://github.com/scatnet/scatnet
+
+To generate the data, we have changed the normalization in the
+conv_sub_1d.m code as follows:
+
+Line 74 changed from:
+	y_ds = ifft(yf_ds)/2^(ds^2);
+
+Line 74 changed to:
+	y_ds = ifft(yf_ds)/2^(ds);
+
+The result of this change is that the action of the periodization
+is to decimate the convolution, without changing the normalization.
+Statements were inserted in wavelet_1d.m, the output of which, with
+the above change, are the decimated convolutions:
+
+|x*\psi|, ||x*\psi|*\psi| etc.
+
+

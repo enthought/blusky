@@ -80,7 +80,7 @@ def vanilla_morlet_1d(
         bandwidth=bandwidth,
         crop=crop,
         taper=taper,
-        scale=j + 1,  # defines the rate at which we decimate
+        scale=j+1,  # defines the rate at which we decimate
     )
 
     return wav

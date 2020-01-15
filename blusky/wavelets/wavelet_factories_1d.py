@@ -4,7 +4,17 @@ from blusky.wavelets.gabor_1d import Gabor1D
 from blusky.wavelets.morlet_1d import Morlet1D
 
 
-
+def calibrate_wavelets_1d(wavelets):
+    """calibrate wavelet shapes to align with valid padding"""
+    ni = np.argmin([wav.shape[0] for wav in wavelets])
+    
+    _shape = wavelets[ni].shape[0]
+    smallest_wav = int(2**np.ceil(np.log2(_shape)))    
+    smallest_j = wavelets[ni].scale
+    
+    for wav in wavelets:
+        wav.shape = (2**(wav.scale - smallest_j)*smallest_wav,)
+        
 def morlet_freq_1d(J):
     """ derived from scatnet/filters/morlet1d see NOTICE.txt
         for license declaration. """

@@ -49,7 +49,7 @@ class TestAlgorithms(unittest.TestCase):
         self.order = 3
         # Should be one or more to avoid aliasing, if you want overlapping
         # tiles this can increase too.
-        self.oversampling = 0
+        self.oversampling = 1
 
         self.num_angles = 3
         self.angles = tuple(
@@ -192,13 +192,13 @@ class TestAlgorithms(unittest.TestCase):
             num_angles=self.num_angles,
             order=self.order,
         )
-
+        
         result = model.predict(np.expand_dims(self.img, axis=0))
 
         cnn_result1 = result[0][0, 0, 0, 0]
         cnn_result2 = result[3][0, 0, 0, 1]
-        cnn_result3 = result[6][0, 0, 0, 5]
-
+        cnn_result3 = result[6][0, 0, 0, 14]
+        
         # use all close to assert relative error:
         manual = np.array(
             [self.manual_result1, self.manual_result2, self.manual_result3]

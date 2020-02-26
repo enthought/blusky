@@ -84,13 +84,13 @@ class ApplyFatherWavlet1D(HasStrictTraits):
 
         # how much to decimate the wavelet to required bandwidth
         wavelet_stride = self.img_size[0] // nh
-
+        
         # need to guarantee this, ideally crop the wavelet to a
         # power of "2"
-        wav = pad_to_log2(self.wavelet.kernel(shape=(self.img_size[0],)))
+        wav = pad_to_log2(self.wavelet.kernel(shape=self._tile_size))
         #
         wav = wav[::wavelet_stride]
-
+        
         # needs to be real
         if np.iscomplexobj(wav):
             wav = wav.real

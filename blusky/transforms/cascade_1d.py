@@ -1,14 +1,14 @@
 import re
 
 import keras.backend as keras_backend
-from keras.layers import Conv1D, Lambda, Add
+from keras.layers import Conv1D, Lambda, Add, SeparableConv1D
 import numpy as np
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
 
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
-
+from blusky.utils.pad_1d import ReflectionPadding1D
 
 class Cascade1D(HasStrictTraits):
     """
@@ -95,9 +95,15 @@ class Cascade1D(HasStrictTraits):
         # precompute decimation
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
 
+        # we need to normalize by the decimation factor to preserve amplitude
+        deci_norm = (wavelet_stride * conv_stride)
+        
         weights = np.zeros(shape, dtype=dtype)
 
-        wav = wavelet1d.kernel()
+        wav = wavelet1d.kernel() * deci_norm
+
+        # decimate wavelet
+        wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
 
         # keras does 32-bit real number convolutions
         if real_part:
@@ -143,7 +149,7 @@ class Cascade1D(HasStrictTraits):
 
         #
         wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
-
+        
         # after decimation
         wavelet_shape = (wavelet.shape[0] // wavelet_stride,)
 
@@ -157,6 +163,13 @@ class Cascade1D(HasStrictTraits):
         )
         self._endpoint_counter += 1
 
+        # ensures proper alignment of subsequent convolutions
+        if self._padding == "valid":
+            _valid_align = int(wavelet_shape[0]//2)
+            inp = ReflectionPadding1D((_valid_align,
+                                       _valid_align-1))(inp)
+        
+        
         real_part = Conv1D(
             1,
             kernel_size=wavelet_shape,

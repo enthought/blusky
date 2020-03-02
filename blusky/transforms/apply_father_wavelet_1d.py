@@ -4,7 +4,7 @@ import keras.backend as keras_backend
 from keras.layers import Conv1D
 import numpy as np
 
-from traits.api import Float, HasStrictTraits, Instance, Int, Tuple, Property
+from traits.api import Enum, Float, HasStrictTraits, Instance, Int, Tuple, Property
 
 from blusky.utils.pad_1d import pad_to_log2
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
@@ -37,6 +37,10 @@ class ApplyFatherWavlet1D(HasStrictTraits):
     #  J = round(log2(min(tile_size))) - 2
     _tile_size = Property(Int, depends_on="J")
 
+    #
+    padding  = Enum("valid", "same")
+
+    
     def _get__tile_size(self):
         size = 2 ** (self.J + 2)
         if size > self.img_size[0]:
@@ -79,7 +83,6 @@ class ApplyFatherWavlet1D(HasStrictTraits):
         name += "phi"
 
         _, nh, _ = input_layer.shape
-
         nh = nh.value
 
         # how much to decimate the wavelet to required bandwidth
@@ -117,13 +120,13 @@ class ApplyFatherWavlet1D(HasStrictTraits):
             ),
         )
         conv_stride = (int(conv_stride[0]),)
-
+        
         conv = Conv1D(
             1,
             wav.shape,
             name=name,
             data_format="channels_last",
-            padding="valid",
+            padding=self.padding,
             strides=conv_stride,
             trainable=trainable,
             kernel_initializer=lambda args: init_weights(args),

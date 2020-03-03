@@ -129,6 +129,7 @@ class ApplyFatherWavlet1D(HasStrictTraits):
             padding=self.padding,
             strides=conv_stride,
             trainable=trainable,
+            use_bias=False,
             kernel_initializer=lambda args: init_weights(args),
         )
 

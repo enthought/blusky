@@ -177,6 +177,7 @@ class Cascade1D(HasStrictTraits):
             padding=self._padding,
             strides=conv_stride,
             trainable=trainable,
+            use_bias=False,
             kernel_initializer=lambda args: self._init_weights(
                 args, node=node, real_part=True, wavelet1d=wavelet
             ),
@@ -190,6 +191,7 @@ class Cascade1D(HasStrictTraits):
             padding=self._padding,
             strides=conv_stride,
             trainable=trainable,
+            use_bias=False,
             kernel_initializer=lambda args: self._init_weights(
                 args, node=node, real_part=False, wavelet1d=wavelet
             ),

@@ -39,9 +39,9 @@ class TestAlgorithms(unittest.TestCase):
 
         # vanilla filter bank
         wavelets = [
-            vanilla_morlet_1d(self.sample_rate, j=i) for i in range(0, self.J)
+            vanilla_morlet_1d(self.sample_rate, self.J, j=i) for i in range(0, self.J)
         ]
-        father_wavelet = vanilla_gabor_1d(self.sample_rate, j=self.J)
+        father_wavelet = vanilla_gabor_1d(self.sample_rate, self.J)
         father_wavelet = father_wavelet.kernel(shape=(self.N,))
 
         # extract the kernels of each of the wavelets for manual convolution
@@ -76,7 +76,7 @@ class TestAlgorithms(unittest.TestCase):
     def test_cascade_1d_results(self):
         # vanilla filter bank
         wavelets = [
-            vanilla_morlet_1d(self.sample_rate, j=i) for i in range(0, self.J)
+            vanilla_morlet_1d(self.sample_rate, self.J, j=i) for i in range(0, self.J)
         ]
 
         deci = NoDecimation()
@@ -131,9 +131,9 @@ class TestAlgorithms(unittest.TestCase):
     def test_apply_father_wavelet(self):
         # vanilla filter bank
         wavelets = [
-            vanilla_morlet_1d(self.sample_rate, j=i) for i in range(0, self.J)
+            vanilla_morlet_1d(self.sample_rate, self.J, j=i) for i in range(0, self.J)
         ]
-        father_wavelet = vanilla_gabor_1d(self.sample_rate, j=self.J)
+        father_wavelet = vanilla_gabor_1d(self.sample_rate, self.J)
 
         deci = NoDecimation()
         inp = Input(shape=(self.N, 1))

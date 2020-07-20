@@ -99,8 +99,8 @@ class ApplyFatherWavlet2D(HasStrictTraits):
 
         _, nh, nw, _ = input_layer.shape
 
-        nh = nh.value
-        nw = nw.value
+        nh = nh
+        nw = nw
 
         # amount of decimation to here.
         factor_1 = self.img_size[0] // nh
@@ -122,9 +122,8 @@ class ApplyFatherWavlet2D(HasStrictTraits):
             wav = wav.real
 
         # define a little helper to intialize the weights.
-        def init_weights(shape, dtype=None):
-            if dtype is None:
-                dtype = np.float32
+        def init_weights(shape, **kwargs):
+            dtype = np.float32
 
             weights = np.zeros(shape, dtype=dtype)
 
@@ -143,7 +142,7 @@ class ApplyFatherWavlet2D(HasStrictTraits):
             ),
         )
         conv_stride = (int(conv_stride[0]), int(conv_stride[0]))
-
+        
         conv = DepthwiseConv2D(
             name=name,
             kernel_size=wav.shape,
@@ -152,7 +151,7 @@ class ApplyFatherWavlet2D(HasStrictTraits):
             padding="valid",
             strides=conv_stride,
             trainable=trainable,
-            depthwise_initializer=lambda args: init_weights(args),
+            depthwise_initializer=init_weights,
         )
 
         return conv(input_layer)

@@ -30,8 +30,7 @@ def morlet_freq_1d(J):
     phi_bw_multiplier = 1+(Q==1);
     _sigma_phi = _sigma_psi/phi_bw_multiplier
         
-    P = int(round((2.**(-1/Q)- 1/4*sigma0/_sigma_phi )/(1-2.**(-1/Q))))
-    
+    P = max(int(round((2.**(-1/Q)- 1/4*sigma0/_sigma_phi )/(1-2.**(-1/Q)))),1)
     # Calculate logarithmically spaced, band-pass filters.
     #xi_psi = xi_psi * 2.^((0:-1:1-J)/Q);
     xi_psi = _xi_psi * 2.**(-np.arange(0,J)/Q)
@@ -40,7 +39,7 @@ def morlet_freq_1d(J):
     sigma_psi = _sigma_psi * 2**(np.arange(0,J)/Q)
     
     # Calculate linearly spaced band-pass filters so that they evenly
-    # cover the remaining part of the spectrum
+    # cover thes remaining part of the spectrum
     #step = pi * 2^(-filt_opt.J/filt_opt.Q) * ...
     #    (1-1/4*sigma0/filt_opt.sigma_phi*2^(1/filt_opt.Q))/filt_opt.P;
     step = np.pi * 2**(-J/Q) * (1-1/4*sigma0/_sigma_phi*2**(1./Q))/P

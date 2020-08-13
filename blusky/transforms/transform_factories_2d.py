@@ -23,6 +23,7 @@ def vanilla_scattering_transform(
     order=2,
     oversampling=1,
     num_angles=8,
+        do_father=True
 ):
 
     # to reproduce scatnet.m and kymatio definitions (see NOTICE.txt)
@@ -69,17 +70,20 @@ def vanilla_scattering_transform(
     unpadded_convs = [i[1](i[0]) for i in zip(convs, unpad)]
 
     # Complete the scattering transform with the father wavelet
-    apply_conv = ApplyFatherWavlet2D(
-        J=J,
-        overlap_log_2=overlap_log_2,
-        img_size=img_size,
-        sample_rate=sample_rate,
-        wavelet=father_wavelet,
-    )
+    if do_father:
+        apply_conv = ApplyFatherWavlet2D(
+            J=J-1,
+            overlap_log_2=overlap_log_2,
+            img_size=img_size,
+            sample_rate=sample_rate,
+            wavelet=father_wavelet,
+        )
+        sca_transf = apply_conv.convolve(unpadded_convs)
+        model = Model(inputs=inp, outputs=sca_transf)
 
-    sca_transf = apply_conv.convolve(unpadded_convs)
-
-    model = Model(inputs=inp, outputs=sca_transf)
+    else:
+        model = Model(inputs=inp, outputs=unpadded_convs)
+        
 
     # generate visuals too, it's a factory
     cascade_tree = CascadeTree(padded, order=order)

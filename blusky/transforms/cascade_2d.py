@@ -208,6 +208,19 @@ class Cascade2D(HasStrictTraits):
         )
         self._endpoint_counter += 1
 
+        def real_init(*args, **kwargs):
+            return self._init_weights(*args,
+                                      node=node,
+                                      real_part=True,
+                                      wavelet2d=wavelet)
+
+        def imag_init(*args, **kwargs):
+            return self._init_weights(*args,
+                                      node=node,
+                                      real_part=False,
+                                      wavelet2d=wavelet)
+
+        
         real_part = DepthwiseConv2D(
             kernel_size=wavelet_shape,
             depth_multiplier=len(self.angles),
@@ -215,9 +228,7 @@ class Cascade2D(HasStrictTraits):
             padding=self._padding,
             strides=conv_stride,
             trainable=trainable,
-            depthwise_initializer=lambda args: self._init_weights(
-                args, node=node, real_part=True, wavelet2d=wavelet
-            ),
+            depthwise_initializer=real_init,
         )(inp)
         real_part = square(real_part)
 
@@ -228,9 +239,7 @@ class Cascade2D(HasStrictTraits):
             padding=self._padding,
             strides=conv_stride,
             trainable=trainable,
-            depthwise_initializer=lambda args: self._init_weights(
-                args, node=node, real_part=False, wavelet2d=wavelet
-            ),
+            depthwise_initializer=imag_init,
         )(inp)
         imag_part = square(imag_part)
 

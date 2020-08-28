@@ -33,10 +33,9 @@ setup(
     description="Scattering Transform Library",
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Intended Audience :: Intended Audience :: Science/Research",
-        "License :: OSI Approved ::  BSD-3-Clause License",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
     ],
     packages=find_packages(exclude=["contrib",
                                     "docs",

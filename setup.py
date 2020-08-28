@@ -28,13 +28,13 @@ here = path.abspath(path.dirname(__file__))
 
 
 setup(
-    name="sandia-blusky",
+    name="blusky",
     version="0.0.1",  # Required
     description="Scattering Transform Library",
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Intended Audience :: Scientists",
-        "License :: OSI Approved :: MIT License",
+        "Intended Audience :: Intended Audience :: Science/Research",
+        "License :: OSI Approved ::  BSD-3-Clause License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
@@ -48,8 +48,8 @@ setup(
                       "traits", 
                       "flake8",
                       "pillow",
-                      "tensorflow<=1.14",
-                      "keras<=2.2.4-8",
+                      "tensorflow<2.3.0",
+                      "keras>=2.3.1",
                       "matplotlib"
                       ],  
     # List additional groups of dependencies here (e.g. development

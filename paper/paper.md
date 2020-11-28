@@ -1,11 +1,12 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'BluSky: A Python package for the Wavelet Scattering Transform'
 tags:
   - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - feature engineering
+  - Wavelet
+  - scattering transform
+  - machine learning
+  - texture
 authors:
   - name: Ben Lasscock^[Corresponding author]
     orcid: 
@@ -65,7 +66,9 @@ students in courses on gravitational dynamics or astronomy. It has already been
 used in a number of scientific publications [@Pearson:2017] and has also been
 used in graduate courses on Galactic dynamics to, e.g., provide interactive
 visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
+design, and s
+
+upport for Astropy functionality in `Gala` will enable exciting
 scientific explorations of forthcoming data releases from the *Gaia* mission
 [@gaia] by students and experts alike.
 
@@ -107,7 +110,7 @@ For a quick reference, the following citation commands can be used:
 # Figures
 
 Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
+![Caption for example figure.\label{fig:example}](wst.png)
 and referenced from text using \autoref{fig:example}.
 
 # Acknowledgements

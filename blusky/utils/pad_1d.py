@@ -54,7 +54,9 @@ class ReflectionPadding1D(ZeroPadding1D):
 
     def __call__(self, inputs):
         padx = self.padding
-        return tf.pad(inputs, ((0, 0), (padx[0], padx[0]), (0, 0)), "REFLECT")
+        return tf.pad(inputs, ((0, 0), 
+                               (padx[0], padx[1]), 
+                               (0, 0)), "REFLECT")
 
 
 class Pad1D(HasStrictTraits):
@@ -190,7 +192,8 @@ class Pad1D(HasStrictTraits):
         
         if padx > 0:
             return Lambda(
-                lambda x: x[:, padx:-padx, :], trainable=False, name=name
+                lambda x: x[:, padx:-padx, :], 
+                                trainable=False, name=name
             )
         else:
             return Lambda(

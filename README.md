@@ -32,10 +32,7 @@ Getting Started
 
 Support
 -------
-This effort was supported by [Sandia National Labs](https://www.sandia.gov/).
+This effort was supported by [Sandia National Labs](https://www.sandia.gov/) with development and maintenance support 
+by [Enthought](https://www.enthought.com).
 
-![Sandia Labs Logo](/blusky/images/sandia-logo.svg)
-
-with development and maintenance support by [Enthought](https://www.enthought.com).
-
-![Enthought logo](/blusky/images/enthought-logo-128px.png)
+![Enthought logo](/blusky/images/enthought-logo-128px.png) ![Sandia Labs Logo](/blusky/images/sandia-logo.svg)

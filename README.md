@@ -35,4 +35,4 @@ Support
 This effort was supported by [Sandia National Labs](https://www.sandia.gov/) with development and maintenance support 
 by [Enthought](https://www.enthought.com).
 
-![Enthought logo](/blusky/images/enthought-logo-128px.png)      ![Sandia Labs Logo](/blusky/images/sandia-logo.svg)
+![Sandia Labs Logo](/blusky/images/sandia-logo.svg) ![Enthought logo](/blusky/images/enthought-logo.png)

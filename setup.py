@@ -48,8 +48,7 @@ setup(
                       "traits", 
                       "flake8",
                       "pillow",
-                      "tensorflow<2.3.0",
-                      "keras>=2.3.1",
+                      "tensorflow",
                       "matplotlib"
                       ],  
     # List additional groups of dependencies here (e.g. development

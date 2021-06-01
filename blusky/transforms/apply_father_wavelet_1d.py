@@ -1,11 +1,14 @@
-import re
-
-import keras.backend as keras_backend
-from keras.layers import Conv1D
 import numpy as np
+import re
+import sys
+
+import tensorflow.keras.backend as keras_backend
+from tensorflow.keras.layers import Conv1D
+from tensorflow import print as tf_print
 
 from traits.api import Enum, Float, HasStrictTraits, Instance, Int, Tuple, Property
 
+from blusky.transforms.blusky_net_weights_1d import BluskyNetWeights1D
 from blusky.utils.pad_1d import pad_to_log2
 from blusky.wavelets.i_wavelet_1d import IWavelet1D
 
@@ -13,7 +16,6 @@ from blusky.wavelets.i_wavelet_1d import IWavelet1D
 class ApplyFatherWavlet1D(HasStrictTraits):
     """
     """
-
     #: (J) This is the "J" scale parameter of the father wavelet used in the
     #  transform.
     J = Int(2)
@@ -40,7 +42,6 @@ class ApplyFatherWavlet1D(HasStrictTraits):
     #
     padding  = Enum("valid", "same")
 
-    
     def _get__tile_size(self):
         size = 2 ** (self.J + 2)
         if size > self.img_size[0]:
@@ -56,10 +57,11 @@ class ApplyFatherWavlet1D(HasStrictTraits):
         The concept here is to first derive the applied decimation
         from the shape of the input layer, then pad the layer and
         apply the a convolution with the father wavelet. The padding
-        and strideof the convolution is designed to return set of coefficients
+        and strideof the convolution is designed to return set of 
+        coefficients
         for a collections of regular (optionally overlapping) tiles.
-        This will be the case provided the size of the original input to the
-        transform are a power of 2.
+        This will be the case provided the size of the original input to 
+        the transform are a power of 2.
 
         Parameters
         ----------
@@ -82,8 +84,7 @@ class ApplyFatherWavlet1D(HasStrictTraits):
         name = re.sub("[_/].*", "", input_layer.name)
         name += "phi"
 
-        _, nh, _ = input_layer.shape
-        nh = nh.value
+        _, nh, _ = input_layer.shape.as_list()
 
         # how much to decimate the wavelet to required bandwidth
         wavelet_stride = self.img_size[0] // nh
@@ -91,24 +92,13 @@ class ApplyFatherWavlet1D(HasStrictTraits):
         # need to guarantee this, ideally crop the wavelet to a
         # power of "2"
         wav = pad_to_log2(self.wavelet.kernel(shape=self._tile_size))
+            
         #
         wav = wav[::wavelet_stride]
         
         # needs to be real
         if np.iscomplexobj(wav):
             wav = wav.real
-
-        # define a little helper to intialize the weights.
-        def init_weights(shape, dtype=None):
-            if dtype is None:
-                dtype = np.float32
-
-            weights = np.zeros(shape, dtype=dtype)
-
-            for ichan in range(shape[2]):
-                weights[:, ichan, 0] = wav.astype(dtype)
-
-            return keras_backend.variable(value=weights, dtype=dtype)
 
         # use the father wavelet scale here instead of the default:
         conv_stride = (
@@ -130,7 +120,7 @@ class ApplyFatherWavlet1D(HasStrictTraits):
             strides=conv_stride,
             trainable=trainable,
             use_bias=False,
-            kernel_initializer=lambda args: init_weights(args),
+            kernel_initializer=BluskyNetWeights1D(wav),
         )
 
         return conv(input_layer)

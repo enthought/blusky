@@ -1,14 +1,19 @@
-import re
-
-import keras.backend as keras_backend
-from keras.layers import Conv1D, Lambda, Add, SeparableConv1D
 import numpy as np
+import re
+import sys
+
+import tensorflow.keras.backend as keras_backend
+from tensorflow.keras.initializers import Initializer
+from tensorflow.keras.layers import Conv1D, Lambda, Add, SeparableConv1D
+from tensorflow import print as tf_print
 
 from traits.api import Enum, HasStrictTraits, Int, Instance, Tuple
 
 from blusky.transforms.default_decimation import NoDecimation
 from blusky.transforms.i_decimation_method import IDecimationMethod
+from blusky.transforms.blusky_net_weights_1d import BluskyNetWeights1D
 from blusky.utils.pad_1d import ReflectionPadding1D
+
 
 class Cascade1D(HasStrictTraits):
     """
@@ -65,58 +70,6 @@ class Cascade1D(HasStrictTraits):
     #:
     _current_order = Int(1)
 
-    def _init_weights(
-        self, shape, node=None, dtype=None, wavelet1d=None, real_part=True
-    ):
-        """
-        Create an initializer for Conv1D layers.
-
-        Parameters
-        ----------
-        wavelet1d - IWavelet2D
-            An object to create a wavelet.
-
-        dtype - Float
-            Data type for the wavelet, default is float32
-
-        real_part - Bool
-            If true it will initialize the convolutional weights
-            with the real-part of the wavelet, if false, the
-            imaginary part.
-
-        Returns
-        -------
-        returns - tensorflow variable
-            returns a tensorflow variable containing the weights.
-        """
-        if dtype is None:
-            dtype = np.float32
-
-        # precompute decimation
-        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
-
-        # we need to normalize by the decimation factor to preserve amplitude
-        deci_norm = (wavelet_stride * conv_stride)
-        
-        weights = np.zeros(shape, dtype=dtype)
-
-        wav = wavelet1d.kernel() * deci_norm
-
-        # decimate wavelet
-        wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
-
-        # keras does 32-bit real number convolutions
-        if real_part:
-            x = wav.real.astype(np.float32)
-        else:
-            x = wav.imag.astype(np.float32)
-
-        # apply to each input channel
-        for ichan in range(shape[2]):
-            weights[:, ichan, 0] = x[: shape[0]]
-
-        return keras_backend.variable(value=weights, dtype=dtype)
-
     def _convolve_and_abs(self, wavelet, inp, node, trainable=False):
         """
         Implement the operations for |inp*psi| in 1-D. Assumes a single
@@ -144,16 +97,26 @@ class Cascade1D(HasStrictTraits):
             The result of the convolution and abs function.
         """
 
+        # Sample/decimate the wavelet
+        wav = wavelet.kernel()
+
+        # precompute decimation
+        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
+
+        # we need to normalize by the decimation factor to preserve amplitude
+        deci_norm = (wavelet_stride * conv_stride)
+
+        # decimate wavelet
+        wav = self.decimation.decimate_wavelet(wav, wavelet_stride)
+        wav *= deci_norm
+        
+        wavelet_shape = wav.shape
+
         # create a valid layer name
         name = re.sub("[*,.|_]", "", node.name)
 
-        #
-        wavelet_stride, conv_stride = self.decimation.resolve_scales(node)
-        
-        # after decimation
-        wavelet_shape = (wavelet.shape[0] // wavelet_stride,)
-
         square = Lambda(lambda x: keras_backend.square(x), trainable=False)
+        
         add = Add(trainable=False)
 
         # The output gets a special name, because it's here we attach
@@ -168,8 +131,7 @@ class Cascade1D(HasStrictTraits):
             _valid_align = int(wavelet_shape[0]//2)
             inp = ReflectionPadding1D((_valid_align,
                                        _valid_align-1))(inp)
-        
-        
+            
         real_part = Conv1D(
             1,
             kernel_size=wavelet_shape,
@@ -178,10 +140,8 @@ class Cascade1D(HasStrictTraits):
             strides=conv_stride,
             trainable=trainable,
             use_bias=False,
-            kernel_initializer=lambda args: self._init_weights(
-                args, node=node, real_part=True, wavelet1d=wavelet
-            ),
-        )(inp)
+            kernel_initializer=BluskyNetWeights1D(wav.real))(inp)
+
         real_part = square(real_part)
 
         imag_part = Conv1D(
@@ -192,13 +152,12 @@ class Cascade1D(HasStrictTraits):
             strides=conv_stride,
             trainable=trainable,
             use_bias=False,
-            kernel_initializer=lambda args: self._init_weights(
-                args, node=node, real_part=False, wavelet1d=wavelet
-            ),
-        )(inp)
+            kernel_initializer=BluskyNetWeights1D(wav.imag))(inp)
+        
         imag_part = square(imag_part)
 
         result = add([real_part, imag_part])
+        
         return sqrt(result)
 
     def _convolve(self, inp, psi, node):

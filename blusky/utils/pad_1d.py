@@ -1,7 +1,7 @@
 import re
 
-from keras.layers import Lambda
-from keras.layers.convolutional import ZeroPadding1D
+from tensorflow.keras.layers import Lambda
+from tensorflow.keras.layers import ZeroPadding1D
 
 import numpy as np
 import tensorflow as tf
@@ -52,9 +52,11 @@ class ReflectionPadding1D(ZeroPadding1D):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def call(self, inputs):
+    def __call__(self, inputs):
         padx = self.padding
-        return tf.pad(inputs, ((0, 0), padx[0], (0, 0)), "REFLECT")
+        return tf.pad(inputs, ((0, 0), 
+                               (padx[0], padx[1]), 
+                               (0, 0)), "REFLECT")
 
 
 class Pad1D(HasStrictTraits):
@@ -190,7 +192,8 @@ class Pad1D(HasStrictTraits):
         
         if padx > 0:
             return Lambda(
-                lambda x: x[:, padx:-padx, :], trainable=False, name=name
+                lambda x: x[:, padx:-padx, :], 
+                                trainable=False, name=name
             )
         else:
             return Lambda(
